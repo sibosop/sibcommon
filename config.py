@@ -4,19 +4,21 @@ home = os.environ['HOME']
 import json
 import urllib2
 from threading import Lock
-
+from utils import print_dbg
 mutex = Lock()
 specs = None
+specDir = None
 
-debug=True
+
 def includeFiles():
   global specs
+  global specDir
   if 'include' not in specs:
     return
   if debug: print "config: doing include"
   for f in specs['include']:
-    path="%s/%s.json"%(defaultSpecDir,f)
-    if debug: print"adding %s to specs"%path
+    path="%s/%s.json"%(specDir,f)
+    print_dbg("adding %s to specs"%path)
     with open(path) as sf:
       tmp = json.load(sf)
     specs.update(tmp)
@@ -24,11 +26,15 @@ def includeFiles():
 
 def load(specPath):
   global specs
-  if debug: print("config: specPath%s"%specPath)
+  if specs:
+    return specs
+  specDir = os.path.dirname(specPath)
+  print_dbg("config: specPath%s"%specPath)
   with open(specPath) as f:
     specs = json.load(f)
   includeFiles()
-  if debug: print("%s"%(specs))
+  print_dbg("%s"%(specs))
+  return specs
   
   
 def internetOn():
