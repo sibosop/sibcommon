@@ -2,10 +2,6 @@
 import os
 import sys
 import mido
-home = os.environ['HOME']
-proj = "%s/%s"%(home,"GitProjects")
-mod = "%s/%s"%(proj,"/improv")
-sys.path.append(mod+"/sibcommon")
 import singleton
 from utils import print_dbg
 
@@ -14,7 +10,8 @@ class ControllerEvent(object):
     self.event = None
     self.num = 0
     self.value = 0
-    
+    self.callback = None
+      
   def __str__(self):
     return "event %s num %s value %s"%(self.event,self.num,self.value)
 
@@ -28,12 +25,19 @@ class Controller(object):
     for i in range(0,128):
       self.emap.append(self.findEvent(i,desc))
       
-  def getEvent(self):
-    msg = self.midiIn.receive();
-    print_dbg("type: %s control %d value %d"%(msg.type,msg.control,msg.value))
-    rval = self.emap[msg.control]
-    rval.value = msg.value
-    return rval
+  def register(self,event,callback):
+    for e in self.emap:
+      if e.event == event:
+        e.callback = callback 
+  
+  def run(self):
+    while True:
+      msg = self.midiIn.receive();
+      print_dbg("type: %s control %d value %d"%(msg.type,msg.control,msg.value))
+      rval = self.emap[msg.control]
+      if rval.callback is not None:
+        rval.value = msg.value
+        rval.callback(rval)
     
   def findEvent(self,controlNum,desc):
     rval = ControllerEvent();
