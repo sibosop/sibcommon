@@ -15,7 +15,7 @@ def includeFiles():
   global specDir
   if 'include' not in specs:
     return
-  if debug: print "config: doing include"
+  print_dbg("config: doing include")
   for f in specs['include']:
     path="%s/%s.json"%(specDir,f)
     print_dbg("adding %s to specs"%path)
@@ -26,6 +26,7 @@ def includeFiles():
 
 def load(specPath):
   global specs
+  global specDir
   if specs:
     return specs
   specDir = os.path.dirname(specPath)
