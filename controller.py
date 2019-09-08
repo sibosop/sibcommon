@@ -4,10 +4,11 @@ import sys
 import mido
 import singleton
 from utils import print_dbg
+from specs import Specs
 
 class ControllerEvent(object):
   def __init__(self):
-    self.event = None
+    self.eventName = None
     self.num = 0
     self.value = 0
     self.callback = None
@@ -15,29 +16,17 @@ class ControllerEvent(object):
   def __str__(self):
     return "event %s num %s value %s"%(self.event,self.num,self.value)
 
-class Controller(object):
-  _metaclass_ = singleton.Singleton
-  def __init__(self,inPort,outPort,desc):
-    mido.set_backend('mido.backends.rtmidi')
-    self.midiIn = mido.open_input(inPort)
-    self.midiOut = mido.open_output(outPort)
+class Controller():
+  __metaclass__ = singleton.Singleton
+  def __init__(self,name):
     self.emap = []
     for i in range(0,128):
-      self.emap.append(self.findEvent(i,desc))
+      self.emap.append(self.findEvent(i,Specs().s[name]))
       
-  def register(self,event,callback):
+  def register(self,eventName,callback):
     for e in self.emap:
-      if e.event == event:
+      if e.eventName == eventName:
         e.callback = callback 
-  
-  def run(self):
-    while True:
-      msg = self.midiIn.receive();
-      print_dbg("type: %s control %d value %d"%(msg.type,msg.control,msg.value))
-      rval = self.emap[msg.control]
-      if rval.callback is not None:
-        rval.value = msg.value
-        rval.callback(rval)
     
   def findEvent(self,controlNum,desc):
     rval = ControllerEvent();
@@ -52,10 +41,5 @@ class Controller(object):
         rval.num = controlNum-min
         break
     return rval
-      
     
-    
-  def close(self):
-    self.midiIn.close()
-    self.midiOut.close()
-
+  
