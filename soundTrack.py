@@ -24,6 +24,13 @@ class SoundTrackManager(object):
     self.eventThreads=[]
     self.makeBuffers()
     self.changeNumSoundThreads(Specs().s['numThreads'])
+    self.tunings = {}
+    for k in Specs().s['tunings'].keys():
+      self.tunings[k] = []
+      for t in Specs().s['tunings'][k]:
+        num,den = t.split("/")
+        self.tunings[k].append(float(num)/float(den))
+    
     
   def makeBuffers(self):
     for l in Specs().s['collections']:
@@ -100,15 +107,16 @@ class soundTrack(threading.Thread):
       self.rRatio = float(self.num-1) * divs
       self.lRatio = 1.0 - self.rRatio
     print_dbg("%s setting lRatio:%f rRation:%f"%(self.name,self.lRatio,self.rRatio))
+    
   def getFactor(self,cs):
     print_dbg("getFactor on: %s"%cs)
   
     rval = 1.0
     if 'tuning' in cs.keys() and cs['tuning'] in Specs().s['tunings'].keys():
-      ts = Specs().s.tunings[cs['tuning']]
+      ts = SoundTrackManager().tunings[cs['tuning']]
       tc = random.choice(ts)
-      oc = random.choice(octaves)
-      print_dbg("tc: %d %d"%(tc,oc))
+      oc = random.choice(SoundTrackManager().octaves)
+      print_dbg("tc: %f %f"%(tc,oc))
       rval = tc * oc
     else:
       print_dbg("default tuning for cs: %s"%cs)
