@@ -14,11 +14,11 @@ from utils import print_dbg
 from soundTrack import SoundTrackManager
 from specs import Specs
 
-class PlayerThread(threading.Thread):
+class ThreadPlayer(threading.Thread):
   def __init__(self):
-    super(PlayerThread,self).__init__()
+    super(ThreadPlayer,self).__init__()
     self.done = False
-    self.name= "Player"
+    self.name= "ThreadPlayer"
     self.running = None
     self.mutex = threading.Lock()
     
