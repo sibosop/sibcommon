@@ -44,7 +44,7 @@ class PlayerThread(threading.Thread):
     
     self.setRunning(SoundFile().testBumpCollection())
     while self.isRunning():
-      print_dbg("%s: time %s stime %s"%(self.name,time.time(),stime))
+      #print_dbg("%s: time %s stime %s"%(self.name,time.time(),stime))
       if time.time() > stime:
         entry = SoundFile().getSoundEntry()
         print_dbg("player choosing %s"%entry)
@@ -55,12 +55,14 @@ class PlayerThread(threading.Thread):
           t.setCurrentSound(choice)
         offset = random.randint(Specs().s['minChange'],Specs().s['maxChange'])
         stime = time.time() + offset
-        print_dbg("next change: %d"%offset)
+        #print_dbg("next change: %d"%offset)
         n = pygame.mixer.get_busy()
-        print_dbg("number busy channels %d"%n)
-      self.waiter.wait()
+        #print_dbg("number busy channels %d"%n)
+      time.sleep(1)
       self.setRunning(SoundFile().testBumpCollection())
+    print ("%s done"%self.name)
+    self.done = True
         
-    for t in self.tList:
+    for t in SoundTrackManager().eventThreads:
       t.stop()
     

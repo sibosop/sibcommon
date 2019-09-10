@@ -4,6 +4,7 @@ import os
 import threading
 import random
 import time
+import Queue
 
 
 import singleton
@@ -23,6 +24,7 @@ class SoundTrackManager(object):
     self.ecount = 0
     self.eventThreads=[]
     self.makeBuffers()
+    
     self.changeNumSoundThreads(Specs().s['numThreads'])
     self.tunings = {}
     for k in Specs().s['tunings'].keys():
@@ -88,14 +90,12 @@ class soundTrack(threading.Thread):
     self.runState = True
     self.name = "SoundTrack-"+str(c)
     self.num = c
-    self.currentSound={'name' : ""}
     self.currentDir = os.getcwd()
-    self.waiter = waiter
     self.lRatio = .5
     self.rRatio = .5
-    self.soundMutex = threading.Lock()
     self.runMutex = threading.Lock()
     self.dirMutex = threading.Lock()
+    self.queue = Queue.Queue()
     
   def setPanRatio(self):
     numEvents = len(SoundTrackManager().eventThreads)
@@ -116,7 +116,7 @@ class soundTrack(threading.Thread):
       ts = SoundTrackManager().tunings[cs['tuning']]
       tc = random.choice(ts)
       oc = random.choice(SoundTrackManager().octaves)
-      print_dbg("tc: %f %f"%(tc,oc))
+      print_dbg("tc: %f oc: %f"%(tc,oc))
       rval = tc * oc
     else:
       print_dbg("default tuning for cs: %s"%cs)
@@ -139,15 +139,7 @@ class soundTrack(threading.Thread):
     return dir
     
   def setCurrentSound(self,cs):
-    self.soundMutex.acquire()
-    self.currentSound = cs
-    self.soundMutex.release()
-  
-  def getCurrentSound(self):
-    self.soundMutex.acquire()
-    cs = self.currentSound 
-    self.soundMutex.release()
-    return cs
+    self.queue.put(cs)
     
   def isRunning(self):
     self.runMutex.acquire()
@@ -163,14 +155,17 @@ class soundTrack(threading.Thread):
     
   def run(self):
     print("Sound Track:"+self.name)
+    ts = None
+    cs = None
     while self.isRunning():
-      cs = self.getCurrentSound()
+      print_dbg("%s: timeout %s"%(self.name,ts))
+      try:
+        test = self.queue.get(timeout=ts)
+      except Queue.Empty:
+        test = cs
+      cs = test
       file=""
       file = cs['name']
-      if file == "":
-        print_dbg("%s: waiting for currentSoundFile"%self.name);
-        time.sleep(2)
-        continue
       #path = rootDir + '/' + file
       print_dbg("%s: playing: %s"%(self.name,file))
       #sound = pygame.mixer.Sound(file=buffers[file])
@@ -194,8 +189,8 @@ class soundTrack(threading.Thread):
       event['time'] = time.time() - SoundFile().baseTime
       self.playList['events'].append(event)
       playSound(sound,lVol,rVol)
-      self.waiter.wait(cs)
-    
+      ts = random.randint(Specs().s['eventMin'],Specs().s['eventMax'])/1000.0;
+      
       
     print("schlub thread " + self.name + " exiting")
     

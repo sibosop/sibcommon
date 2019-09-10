@@ -37,16 +37,17 @@ class SoundFile(object):
 
       
   def testBumpCollection(self):
-    print_dbg("testBumpCollection time %d timeout %d"%(time.time(),self.timeout))
+    #print_dbg("testBumpCollection time %d timeout %d"%(time.time(),self.timeout))
     if time.time() > self.timeout:
-      print_dbg("testBumpCollection timeout passed")
+      print("testBumpCollection timeout passed")
       if len(self.collections) == 0:
+        print("testBumpCollection done")
         return False
     
       self.currentCollection = self.collections.pop(0)
-      print_dbg("new current collection %s"%self.currentCollection['name'])
+      print("new current collection %s"%self.currentCollection['name'])
       self.timeout = time.time() + self.currentCollection['time']
-      print_dbg("new timeout %d"%self.timeout)
+      print("new timeout %d"%self.timeout)
     return True
   
   def getSoundEntry(self):
