@@ -10,7 +10,6 @@ import os
 import sys
 from soundFile import SoundFile
 import pygame
-from waiter import TimeWaiter
 from utils import print_dbg
 from soundTrack import SoundTrackManager
 from specs import Specs
@@ -20,7 +19,6 @@ class PlayerThread(threading.Thread):
     super(PlayerThread,self).__init__()
     self.done = False
     self.name= "Player"
-    self.waiter = TimeWaiter()
     self.running = None
     self.mutex = threading.Lock()
     

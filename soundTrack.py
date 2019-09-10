@@ -10,7 +10,6 @@ import Queue
 import singleton
 from specs import Specs
 from utils import print_dbg
-from waiter import TimeWaiter
 from soundUtils import speedx,playSound
 from soundFile import SoundFile
 
@@ -51,10 +50,7 @@ class SoundTrackManager(object):
   def startEventThread(self):
     print_dbg("startEventThread")
     self.ecount += 1
-    waiter = None
-    if Specs().s['waiterType'] == 'timeWaiter':
-      waiter = TimeWaiter()
-    t=soundTrack(self.ecount,waiter)
+    t=soundTrack(self.ecount)
     self.eventThreads.append(t)
     self.eventThreads[-1].setDaemon(True)
     self.eventThreads[-1].start()
@@ -83,7 +79,7 @@ class SoundTrackManager(object):
   
   
 class soundTrack(threading.Thread):
-  def __init__(self,c,waiter):
+  def __init__(self,c):
     super(soundTrack,self).__init__()
     self.playList = {}
     self.playList['events'] = []
