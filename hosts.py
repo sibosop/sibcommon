@@ -5,6 +5,7 @@ import argparse
 import platform
 import subprocess
 import traceback
+import json
 home = os.environ['HOME']
 import sys
 import urllib2
@@ -56,20 +57,21 @@ class Hosts(object):
       print_dbg("send to host: %s %s"%(ip,cmd))
       url = "http://"+ip+":8080"
       print_dbg("url: %s"%url)
-      print_dgb("cmd json: %s"%json.dumps(cmd))
+      print_dbg("cmd json: %s"%json.dumps(cmd))
       req = urllib2.Request(url
               ,json.dumps(cmd),{'Content-Type': 'application/json'})
-      f = urllib2.urlopen(req,None,timeout)
+      f = urllib2.urlopen(req,None,self.timeout)
       test = f.read()
       print_dbg("got response: %s"%test)
     except Exception, e:
         traceback.print_exc()
       
 
-  def sendWithSubnet(self,ip,cmd):
+  @staticmethod
+  def sendWithSubnet(ip,cmd):
     for i in ip:
       h = "%s.%d"%(Specs().s['subnet'],i)
-      self.sendToHost(h,cmd)
+      sendToHost(h,cmd)
 
   def sendToHosts(self,cmd):
     save = None
@@ -82,12 +84,15 @@ class Hosts(object):
     if save is not None:
       self.sendToHost(save,cmd)
     
-  def jsonStatus(self,s):
+  @staticmethod
+  def jsonStatus(s,ok=True):
     d = {}
+    d['ok'] = ok
     d['status'] = s
     return json.dumps(d) 
      
-  def sendToWordServer(self,ip,cmd): 
+  @staticmethod
+  def sendToWordServer(ip,cmd): 
     print_dbg("send to word server")
     rval = True
     port = Specs().s['wordServerPort']
@@ -96,7 +101,7 @@ class Hosts(object):
       url = "http://%s:%d/%s"%(ip,port,cmd)
       print_dbg("send to word server: %s"%url)
       req = urllib2.Request(url)
-      f = urllib2.urlopen(req,None,timeout)
+      f = urllib2.urlopen(req,None,self.timeout)
       rval = f.read()
       print_dbg("got response: %s"%rval)  
     except Exception as e:
@@ -104,7 +109,8 @@ class Hosts(object):
       rval = jsonStatus("408")
     return rval
       
-  def isLocalHost(self,ip):
+  @staticmethod
+  def isLocalHost(ip):
     plats=platform.platform().split('-');
     if plats[0] == 'Darwin':
       return False
@@ -117,7 +123,8 @@ class Hosts(object):
     print_dbg("isLocalHost is False: %s"%ip)
     return False
 
-  def getLocalHost(self):
+  @staticmethod
+  def getLocalHost():
     subnet = Specs().s['subnet']
     ipList = subprocess.check_output(["hostname","-I"]).split()
     for ip in ipList:
@@ -139,7 +146,7 @@ class Hosts(object):
     return rval 
   
   def getLocalAttr(self,a):
-    rval = self.getHost(self.getLocalHost())[a]
+    rval = self.getHost(Hosts.getLocalHost())[a]
     print_dbg("Get Local Attr %s: %s"%(a,rval))
     return rval
 
