@@ -17,13 +17,18 @@ from utils import print_dbg
 class Hosts(object):
   __metaclass__ = Singleton
   def __init__(self):
-    self.names = []
     self.timeout = 2
-    self.hosts = Specs().s['hosts']
-    for a in self.hosts:
-      if 'name' in a:
-        self.names.append(a['name'])
-
+    default = Specs().s['host_defaults']
+    hosts = Specs().s['hosts']
+    self.hosts = []
+    for h in hosts:
+      host = {}
+      for k in default.keys():
+        host[k] = default[k]
+      for k in h.keys():
+        host[k] = h[k]
+      self.hosts.append(host)
+      
   def getHosts(self):
     return self.hosts
   

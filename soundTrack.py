@@ -12,6 +12,8 @@ from specs import Specs
 from utils import print_dbg
 from soundUtils import speedx,playSound
 from soundFile import SoundFile
+from hosts import Hosts
+from server import Server
 
 class SoundTrackManager(object):
   __metaclass__ = singleton.Singleton
@@ -21,10 +23,13 @@ class SoundTrackManager(object):
     self.currentSound = {'file':""}
     self.octaves = [0.25,0.5,1.0,2.0,4.0]
     self.ecount = 0
+    self.name = "SoundTrackManager"
     self.eventThreads=[]
     self.makeBuffers()
+    if Hosts().getLocalAttr("hasServer"):
+      Server().registerCommand("Sound",self.doSound)
     
-    self.changeNumSoundThreads(Specs().s['numThreads'])
+    self.changeNumSoundThreads(Specs().s['numMusicThreads'])
     self.tunings = {}
     for k in Specs().s['tunings'].keys():
       self.tunings[k] = []
@@ -32,18 +37,20 @@ class SoundTrackManager(object):
         num,den = t.split("/")
         self.tunings[k].append(float(num)/float(den))
     
-    
+  def doSound(self,cmd):
+    for t in self.eventThreads():
+      t.setCurrentSound(cmd['args'])
+
   def makeBuffers(self):
+    print_dbg("%s: makeBuffers"%self.name)
     for l in Specs().s['collections']:
       print_dbg ("l: %s"%l)
       for f in Specs().s[l['list']]:
         print_dbg("f: %s"%f['name'])
-        try:
-          path = self.rootDir + '/' + f['name']
-          buffer = pygame.mixer.Sound(file=path)
-          self.buffers[f['name']] = buffer
-        except Exception as e:
-          print "make Buffers:",e
+        path = self.rootDir + '/' + f['name']
+        buffer = pygame.mixer.Sound(file=path)
+        self.buffers[f['name']] = buffer
+          
           
   
   
@@ -74,6 +81,7 @@ class SoundTrackManager(object):
         self.stopEventThread()
   
     return True
+
 
   
   
@@ -150,7 +158,7 @@ class soundTrack(threading.Thread):
     
     
   def run(self):
-    print("Sound Track:"+self.name)
+    print("%s starting"%self.name)
     ts = None
     cs = None
     while self.isRunning():
