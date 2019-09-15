@@ -9,6 +9,7 @@ import json
 import os
 import sys
 import traceback
+import urllib2
 from soundFile import SoundFile
 import pygame
 from utils import print_dbg
@@ -61,16 +62,16 @@ class MusicPlayer(threading.Thread):
           if h['hasMusic']:
             try:
               url = "http://"+ip+":8080"
-              if debug: syslog.syslog("url:"+url)
+              print_dbg("%s: url: %s"%(self.name,url))
               cmd = { 'cmd' : "Sound" ,'args' : choice }
               req = urllib2.Request(url
                       ,json.dumps(cmd),{'Content-Type': 'application/json'})
               timeout = 4
               f = urllib2.urlopen(req,None,timeout)
               test = f.read()
-              if debug: syslog.syslog("got response:"+test)
-            except Exception,u:
-              print("%s skipping on error on url %s: %s"%(self.name,url,u))
+              print_dbg("%s: got response:%s"%(self.name,test))
+            except urllib2.URLError as ve:
+              print("%s: got URLError %s"%(self.name,ve))
               continue
         offset = random.randint(Specs().s['minChange'],Specs().s['maxChange'])
         stime = time.time() + offset

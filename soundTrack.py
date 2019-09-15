@@ -47,9 +47,12 @@ class SoundTrackManager(object):
       print_dbg ("l: %s"%l)
       for f in Specs().s[l['list']]:
         print_dbg("f: %s"%f['name'])
-        path = self.rootDir + '/' + f['name']
-        buffer = pygame.mixer.Sound(file=path)
-        self.buffers[f['name']] = buffer
+        if f['name'] in self.buffers:
+          print_dbg("%s: skipping existing fname %s"%(self.name,f['name']))
+        else:
+          path = self.rootDir + '/' + f['name']
+          buffer = pygame.mixer.Sound(file=path)
+          self.buffers[f['name']] = buffer
           
           
   
