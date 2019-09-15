@@ -38,8 +38,9 @@ class SoundTrackManager(object):
         self.tunings[k].append(float(num)/float(den))
     
   def doSound(self,cmd):
-    for t in self.eventThreads():
-      t.setCurrentSound(cmd['args'])
+    for t in self.eventThreads:
+      t.setCurrentSound(cmd)
+      return Hosts.jsonStatus(str(cmd))
 
   def makeBuffers(self):
     print_dbg("%s: makeBuffers"%self.name)
