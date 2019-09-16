@@ -101,11 +101,11 @@ def setVolume(vol):
   if int(vol) >= 100 :
     vol = "100"
   hw=getHw()
-  print("max volume: %d"%hw['max'])
+  print("hw info %s"%hw)
   volRat = int(hw['max'])/100.0
   setVol = float(vol) * volRat
   setVol = int(round(setVol))
-  print("max volume: %d rat: %f vol: %d SetVol"%(hw['max'],volRat,vol,setVol))
+  print("max volume: %s rat: %f vol: %s SetVol %d"%(hw['max'],volRat,vol,setVol))
   cmdHdr = ["amixer", "-c",hw['Speaker']]
   try:
     cmd = cmdHdr[:]
@@ -119,7 +119,7 @@ def setVolume(vol):
         cmd.append("cset")  
         cmd.append(vars[0]+","+vars[2])
         cmd.append(str(setVol)) 
-        print_debug("vol: %d"%cmd)
+        print_dbg("vol: %s"%cmd)
         output = check_output(cmd)
 
   except CalledProcessError as e:
