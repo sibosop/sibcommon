@@ -46,6 +46,8 @@ Once you have the card numbers you edit this file:
 * `cp ~/GitProjects/AssAi/asoundrc.template ~/.asoundrc`
 * `vi ~/.asoundrc`
 Change the `pcm: hw:<cardno>,1` to have the proper numbers for the mic and speaker.
+* HDMI needs hdmi_drive=2 set in /boot/config.txt
+
 
 Linux uses ALSA for its audio:
 * speaker-test *
