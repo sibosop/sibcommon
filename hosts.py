@@ -59,24 +59,28 @@ class Hosts(object):
   def sendToHost(self,ip,cmd):
     rval = True
     try:
-      print_dbg("send to host: %s %s"%(ip,cmd))
+      print("cmd %s"%cmd)
+      timeout = self.timeout
+      if 'timeout' in cmd['args']:
+        print("args %s"%cmd['args'])
+        timeout = cmd['args']['timeout']
+      print_dbg("send to host: %s %s timeout=%d"%(ip,cmd,timeout))
       url = "http://"+ip+":8080"
       print_dbg("url: %s"%url)
       print_dbg("cmd json: %s"%json.dumps(cmd))
       req = urllib2.Request(url
               ,json.dumps(cmd),{'Content-Type': 'application/json'})
-      f = urllib2.urlopen(req,None,self.timeout)
+      f = urllib2.urlopen(req,None,timeout)
       test = f.read()
       print_dbg("got response: %s"%test)
     except Exception, e:
         traceback.print_exc()
       
 
-  @staticmethod
-  def sendWithSubnet(ip,cmd):
+  def sendWithSubnet(self,ip,cmd):
     for i in ip:
-      h = "%s.%d"%(Specs().s['subnet'],i)
-      sendToHost(h,cmd)
+      h = "%s.%s"%(Specs().s['subnet'],i)
+      self.sendToHost(h,cmd)
 
   def sendToHosts(self,cmd):
     save = None

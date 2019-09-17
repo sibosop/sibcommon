@@ -12,6 +12,7 @@ from hosts import Hosts
 
 from utils import print_dbg
 from singleton import Singleton
+import upgrade
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
