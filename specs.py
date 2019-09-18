@@ -9,7 +9,7 @@ class Specs(object):
 
   def __init__(self,specPath):
     self.s = None
-    specDir = os.path.dirname(specPath)
+    self.specDir = os.path.dirname(specPath)
     print_dbg("Specs: specPath%s"%specPath)
     with open(specPath) as f:
       self.s = json.load(f)
