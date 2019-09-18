@@ -1,34 +1,31 @@
 #!/usr/bin/env python
 import os
-home = os.environ['HOME']
-proj = "%s/%s"%(home,"GitProjects/iAltar")
-import sys
-sys.path.append(proj+"/common")
-sys.path.append(proj+"/config")
 import syslog
 import subprocess
 import threading
-import host
 import RPi.GPIO as GPIO
 import time
+from singleton import Singleton
+from hosts import Hosts
 
 class ShutdownThread(threading.Thread):
+  __metaclass__ = Singleton
   def __init__(self):
     super(ShutdownThread,self).__init__()
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-    self.hosts = host.getHosts()
+    self.hosts = Hosts().getHosts()
     self.name = "Shutdown Thread"
 
   def doShutdown(self):
     print "%s doing shutdown"%self.name
     for h in self.hosts:
-      if host.isLocalHost(h['ip']):
+      if Hosts().isLocalHost(h['ip']):
         print"%s skipping localhost shutdown for %s"%(self.name,h['ip'])
       else:
         try:
           print "%s calling shutdown for: %s"%(self.name,h['ip'])
-          host.sendToHost(h['ip'],{'cmd' : 'Poweroff', 'args' : [""] })
+          Hosts().sendToHost(h['ip'],{'cmd' : 'Poweroff', 'args' : [""] })
         except:
           print "%s ignoring shutdown error for %s"%(self.name,h)
     print "%s shutting down"%self.name

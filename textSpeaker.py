@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 import os
 import sys
-home = os.environ['HOME']
-proj = home+"GitProjects/iAltar"
-sys.path.append(proj+"/iAltar")
-sys.path.append(proj+"/config")
-sys.path.append(proj+"/common")
 import host
 import pygame
 import sys
@@ -13,12 +8,11 @@ import time
 import os
 import wave
 import audioop
-import config
-import host
 import re
 from gtts import gTTS
 from pydub import AudioSegment
-debug = True
+
+
 
 def convertSampleRate(fname):
   spf = wave.open(fname, 'rb')
@@ -78,6 +72,10 @@ def makeSpeakFile(line,language=''):
 
 
 if __name__ == '__main__':
-  config.load()
+  os.environ['DISPLAY']=":0.0"
+  os.chdir(os.path.dirname(sys.argv[0]))
+  os.chdir("..") # sigh: get to default app path
+  Debug(["__main__"])
+  Specs("%s/%s"%("speclib","commontest.json"))
   print "%s"%makeSpeakFile("fuck everything")
   
