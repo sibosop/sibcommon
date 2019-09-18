@@ -24,114 +24,107 @@ __author__ = 'jcgregorio@google.com (Joe Gregorio)'
 
 import os
 import sys
-home = os.environ['HOME']
-proj = home+"/GitProjects/iAltar"
-sys.path.append(proj+"/iAltar")
-sys.path.append(proj+"/config")
-sys.path.append(proj+"/common")
-sys.path.append(proj+"/server")
 import pprint
-import config
 import time
 import traceback
 import sys
 import apiclient
 
 from apiclient.discovery import build
+from specs import Specs
+from debug import Debug
+from singleton import Singleton
 
-global initFlag
-initFlag=False
-debug=False
-global creds
-creds={}
 
-def doSetup():
-  global creds
-  config.load()
-  lines = open(config.specs['credFile']).read().split('\n')
-  for l in lines:
-    vars=l.split("=")
-    if len(vars) == 2:
-      creds[vars[0]]=vars[1]
-
-  for k in creds.keys():
-    if debug: print "key:",k,"value:",creds[k]
+class Search(object):
+  __metaclass__ = Singleton
+  
+  def __init__(self):
+    self.creds = {}
+    lines = open(Specs().s['credFile']).read().split('\n')
+    for l in lines:
+      vars=l.split("=")
+      if len(vars) == 2:
+        self.creds[vars[0]]=vars[1]
+    for k in self.creds.keys():
+      Debug().p("key: %s value %s"%(k,self.creds[k]))
   
 
   
-def getUrls(qs):
-  global initFlag
-  if initFlag==False:
-    doSetup()
-    initFlag=True
-  images=[]
-  index=0
-  while len(images) < 15:
-    # Build a service object for interacting with the API. Visit
-    # the Google APIs Console <http://code.google.com/apis/console>
-    # to get an API key for your own application.
-    try:
-      service = build("customsearch", "v1",
-                developerKey=creds['key'])
-      query = qs[0]+" "+qs[1]
-      startReq = index * 10
+  def getUrls(self,qs):
+    images=[]
+    index=0
+    while len(images) < 15:
+      # Build a service object for interacting with the API. Visit
+      # the Google APIs Console <http://code.google.com/apis/console>
+      # to get an API key for your own application.
+      try:
+        service = build("customsearch", "v1",
+                  developerKey=self.creds['key'])
+        query = qs[0]+" "+qs[1]
+        startReq = index * 10
       
-      if debug: print "query:",query,"index:",startReq
-      res=None
-      start_time = time.time()
-      if index == 0:
-        res = service.cse().list(
-            q=query,
-            cx=creds['cx'],
-            searchType='image',
-            safe='off',
-          ).execute()
-      else:
-        res = service.cse().list(
-            q=query,
-            cx=creds['cx'],
-            searchType='image',
-            start=int(startReq),
-            safe='off',
-          ).execute()
-      elapsed_time = time.time() - start_time
-      if 'error' in res:
-        print "google responded with error message: ",pprint.pformat(res)
-        time.sleep(60)
-        return []
-      tst= 'items' in res
-      if tst==False or len(res['items']) < 10:
-        if debug: print "rejecting too few items"
-        return []
+        Debug().p ("query: %s index: %s"%(query,startReq))
+        res=None
+        start_time = time.time()
+        if index == 0:
+          res = service.cse().list(
+              q=query,
+              cx=self.creds['cx'],
+              searchType='image',
+              safe='off',
+            ).execute()
+        else:
+          res = service.cse().list(
+              q=query,
+              cx=self.creds['cx'],
+              searchType='image',
+              start=int(startReq),
+              safe='off',
+            ).execute()
+        elapsed_time = time.time() - start_time
+        if 'error' in res:
+          print "google responded with error message: ",pprint.pformat(res)
+          time.sleep(60)
+          return []
+        tst= 'items' in res
+        if tst==False or len(res['items']) < 10:
+          Debug().p ("rejecting too few items")
+          return []
 
-      #if debug: print "res:",res 
-      for l in res['items']:
-        if debug: print "link",l['link']
-        relem={}
-        relem['full']=l['link']
-        relem['thumb']=l['image']['thumbnailLink']
-        images.append(relem)
+        #Debug().p "res:",res 
+        for l in res['items']:
+          Debug().p ("link %s"%l['link'])
+          relem={}
+          relem['full']=l['link']
+          relem['thumb']=l['image']['thumbnailLink']
+          images.append(relem)
     
-      index += 1
+        index += 1
           
-      if debug: pprint.pprint(res)
+        Debug().p(res)
 
-    except apiclient.errors.HttpError,e:
-      print("google cse status:"+str(e.resp.status))
-      if e.resp.status == 403:
-        print("Google Quota Exceeded")
-      return None
+      except apiclient.errors.HttpError,e:
+        print("google cse status:"+str(e.resp.status))
+        if e.resp.status == 403:
+          print("Google Quota Exceeded")
+        return None
       
-    except:
-      print("google cse:"+str(sys.exc_info()[0]))
-      return None 
+      except:
+        print("google cse:"+str(sys.exc_info()[0]))
+        return None 
 
-  return images
+    return images
 
 
 if __name__ == '__main__':
-  import words
-  urls=getUrls(words.getWords())
+  from words import Words
+  os.environ['DISPLAY']=":0.0"
+  os.chdir(os.path.dirname(sys.argv[0]))
+  os.chdir("..") # sigh: get to default app path
+  Debug(["__main__","words"])
+  Specs("%s/%s"%("speclib","commontest.json"))
+  urls=Search().getUrls(Words().getWords())
   if urls == None:
     print "Google Error"
     exit(1)
