@@ -1,14 +1,6 @@
 #!/usr/bin/env python
 import urllib2
-
-debug = False
-
-def setDebug(flag):
-  global debug
-  debug = flag
-
-def print_dbg(msg):
-  if debug: print(msg)
+import os
   
 def internetOn():
   try:
@@ -17,5 +9,10 @@ def internetOn():
   except urllib2.URLError as err: 
     return False
     
-
-  
+def mkpath(path):
+  try: 
+    os.makedirs(path)
+  except OSError:
+    if not os.path.isdir(path):
+      raise
+  return path
