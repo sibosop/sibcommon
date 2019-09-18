@@ -101,7 +101,7 @@ class Archive(object):
         print "Error %s"%(e)
 
 if __name__ == '__main__':
-  Debug(["__main__","archive","specs"])
+  Debug(["__main__","archive","specs","hosts"])
   os.environ['DISPLAY']=":0.0"
   os.chdir(os.path.dirname(sys.argv[0]))
   os.chdir("..") # sigh: get to default app path

@@ -16,7 +16,7 @@ class Specs(object):
     if 'include' in self.s:
       Debug().p("Specs: doing include")
       for f in self.s['include']:
-        path="%s/%s.json"%(specDir,f)
+        path="%s/%s.json"%(self.specDir,f)
         Debug().p("adding %s to specs"%path)
         with open(path) as sf:
           tmp = json.load(sf)

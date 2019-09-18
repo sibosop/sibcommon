@@ -34,11 +34,10 @@ class Words(object):
     return tests
 
 if __name__ == '__main__':
-  from utils import setDebug
-  setDebug(True)
   os.environ['DISPLAY']=":0.0"
   os.chdir(os.path.dirname(sys.argv[0]))
   os.chdir("..") # sigh: get to default app path
+  Debug(["__main__"])
   Specs("%s/%s"%("speclib","commontest.json"))
   choices = Words().getWords()
   print choices
