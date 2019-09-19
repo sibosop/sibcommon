@@ -10,14 +10,7 @@ def upgrade():
     cmd = ['git','pull','origin','master']
     print("upgrade: %s"%(cmd))
     output = check_output(cmd)
-    print("upgrade: %s"%output)
-    os.chdir("sibcommon")
-    print("DOING UPGRADE current dir %s"%os.getcwd())
-    print("upgrade: %s"%(cmd))
-    output = check_output(cmd)
-    print("upgrade: %s"%output)
-    os.chdir('../speclib')
-    print("DOING UPGRADE current dir %s"%os.getcwd())
+    cmd = ['git','submodule','update']
     print("upgrade: %s"%(cmd))
     output = check_output(cmd)
     print("upgrade: %s"%output)
