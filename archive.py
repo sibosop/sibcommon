@@ -16,6 +16,9 @@ from specs import Specs
 class Archive(object):
   __metaclass__ = Singleton
   def __init__(self):
+    self.reset()
+
+  def reset(self):
     self.cache = mkpath("%s/archiveCache"%(Specs().s['tmpdir']))
     self.adir=Specs().s["archiveDir"]
     self.archives = []
@@ -24,7 +27,7 @@ class Archive(object):
       self.archives.append(a)
     self.randList = random.sample(range(len(self.archives)),len(self.archives))
     self.randListIndex = 0
-
+    
   def getArchiveCache(self):
     return self.cache
 
@@ -95,7 +98,7 @@ class Archive(object):
           tf.write("%s\n"%fb)
         tf.close()
         cmd = ["tar","-czf",adir+"/"+str(uuid.uuid4())+".tgz","-C",cdir,"-T",tmpFile]
-        Debuf().p("cmd %s"%cmd)
+        Debug().p("cmd %s"%cmd)
         subprocess.check_output(cmd)
       except subprocess.CalledProcessError, e:
         print "Error %s"%(e)

@@ -3,7 +3,7 @@ import csv
 import os
 import sys
 import glob
-from utils import print_dbg
+from debug import Debug
 from singleton import Singleton
 from specs import Specs
 import mido
@@ -17,7 +17,7 @@ class Event(object):
     self.callback = self.defaultCallback
     
   def defaultCallback(self,event):
-    print_dbg("default event callback %s"%event)
+    Debug().p("default event callback %s"%event)
       
   def __str__(self):
     return "event %s num %s value %s"%(self.eventName,self.num,self.value)

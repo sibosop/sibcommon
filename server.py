@@ -10,7 +10,7 @@ import subprocess
 import urlparse
 from hosts import Hosts
 
-from utils import print_dbg
+from debug import Debug
 from singleton import Singleton
 import upgrade
 
@@ -36,13 +36,13 @@ class MyHandler(BaseHTTPRequestHandler):
     content_len = int(self.headers.getheader('content-length', 0))
     post_body = self.rfile.read(content_len)
     
-    print_dbg("Post: %s"%str(post_body))
+    Debug().p("Post: %s"%str(post_body))
     status = Server().cmdHandler(json.loads(post_body))
     self.send_response(200)
     self.end_headers()
     self.wfile.write(status)
     s = json.loads(status)
-    print_dbg("handle cmd: %s"%s);
+    Debug().p("handle cmd: %s"%s);
     if s['status'] == "poweroff":
       Server.doExit(3)
     if s['status'] == "reboot":
@@ -90,7 +90,7 @@ class Server(threading.Thread):
     return Hosts().jsonStatus("reboot");
 
   def cmdHandler(self,cmd):
-    print_dbg("%s handling cmd: %s"%(self.name,cmd['cmd']))
+    Debug().p("%s handling cmd: %s"%(self.name,cmd['cmd']))
     if cmd['cmd'] not in self.commandTable.keys():
       return Hosts.jsonStatus("%s: %s not implemented"%(self.name,cmd['cmd']),False)
     status = self.commandTable[cmd['cmd']](cmd['args'])
@@ -98,7 +98,7 @@ class Server(threading.Thread):
     
 
   def registerCommand(self,cmd,callback):
-    print_dbg("%s: registering command %s"%(self.name,cmd))
+    Debug().p("%s: registering command %s"%(self.name,cmd))
     self.commandTable[cmd] = callback
 
   def run(self):

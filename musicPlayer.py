@@ -12,7 +12,7 @@ import traceback
 import urllib2
 from soundFile import SoundFile
 import pygame
-from utils import print_dbg
+from debug import Debug
 from soundTrack import SoundTrackManager
 from specs import Specs
 from hosts import Hosts
@@ -45,39 +45,39 @@ class MusicPlayer(threading.Thread):
     stime = time.time()
     self.setRunning(SoundFile().testBumpCollection())
     while self.isRunning():
-      #print_dbg("%s: time %s stime %s"%(self.name,time.time(),stime))
+      #Debug().p("%s: time %s stime %s"%(self.name,time.time(),stime))
       if time.time() > stime:
         entry = SoundFile().getSoundEntry()
-        print_dbg("player choosing %s"%entry)
+        Debug().p("player choosing %s"%entry)
         count = 0
         for t in SoundTrackManager().eventThreads:
           choice = random.choice(entry)
-          print_dbg("sending  %s request to %s"%(choice,t.name))
+          Debug().p("sending  %s request to %s"%(choice,t.name))
           t.setCurrentSound(choice)
         for h in Hosts().getHosts():
           ip = h['ip']
           if Hosts.isLocalHost(ip):
-            print_dbg("%s: ignoring %s"%(self.name,ip))
+            Debug().p("%s: ignoring %s"%(self.name,ip))
             continue
           if h['hasMusic']:
             try:
               url = "http://"+ip+":8080"
-              print_dbg("%s: url: %s"%(self.name,url))
+              Debug().p("%s: url: %s"%(self.name,url))
               cmd = { 'cmd' : "Sound" ,'args' : choice }
               req = urllib2.Request(url
                       ,json.dumps(cmd),{'Content-Type': 'application/json'})
               timeout = 4
               f = urllib2.urlopen(req,None,timeout)
               test = f.read()
-              print_dbg("%s: got response:%s"%(self.name,test))
+              Debug().p("%s: got response:%s"%(self.name,test))
             except urllib2.URLError as ve:
               print("%s: got URLError %s"%(self.name,ve))
               continue
         offset = random.randint(Specs().s['minChange'],Specs().s['maxChange'])
         stime = time.time() + offset
-        #print_dbg("next change: %d"%offset)
+        #Debug().p("next change: %d"%offset)
         n = pygame.mixer.get_busy()
-        #print_dbg("number busy channels %d"%n)
+        #Debug().p("number busy channels %d"%n)
       time.sleep(1)
       self.setRunning(SoundFile().testBumpCollection())
     print ("%s done"%self.name)

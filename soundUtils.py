@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import pygame
 import os
-from utils import print_dbg
+from debug import Debug
 import numpy as np
 
 def playSound(sound,l,r):
@@ -10,8 +10,8 @@ def playSound(sound,l,r):
   if eventChan is None:
     pygame.mixer.set_num_channels(pygame.mixer.get_num_channels()+1);
     eventChan=pygame.mixer.find_channel()
-  print_dbg("busy channels: %d"%getBusyChannels())
-  print_dbg("l: %s r %s"%(str(l),str(r)))
+  Debug().p("busy channels: %d"%getBusyChannels())
+  Debug().p("l: %s r %s"%(str(l),str(r)))
   eventChan.set_volume(l,r)
   eventChan.play(sound)
   eventChan.set_endevent()
@@ -24,7 +24,7 @@ def getBusyChannels():
   return count
 
 def playFile(path):
-  print_dbg("playing %s"%path)
+  Debug().p("playing %s"%path)
   sound = pygame.mixer.Sound(file=path)
   playSound(sound,.5,.5)
 
@@ -33,12 +33,12 @@ def doJpent():
   speedChangeMin = specs.specs['speedChangeMin']
   rval = ((speedChangeMax-speedChangeMin) 
                         * random.random()) + speedChangeMin
-  print_dbg("doJpent")
+  Debug().p("doJpent")
   return rval
 
 def speedx(sound, factor):
   rval = None
-  print_dbg("speedx factor: %s"%factor)
+  Debug().p("speedx factor: %s"%factor)
   sound_array = pygame.sndarray.array(sound)
   """ Multiplies the sound's speed by some `factor` """
   indices = np.round( np.arange(0, len(sound_array), factor) )

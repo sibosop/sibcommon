@@ -4,12 +4,9 @@ import sys
 import traceback
 home = os.environ['HOME']
 from subprocess import CalledProcessError, check_output
-debug=True
 micKey="MIC_CARD"
 speakerKey="SPEAKER_CARD"
-from utils import print_dbg
-from utils import setDebug
-
+from debug import Debug
 usbMic="USB-Audio - USB PnP Sound Device"
 
 defaultSpeaker = {'search' : "bcm2835 - bcm2835 ALSA", 'name' : "MINI" }
@@ -23,14 +20,14 @@ speakerLookup = [
 def getCardNum(line,key):
   rval=""
   if line.find(key) != -1:
-    print_dbg("found %s:%s"%(key,line))
+    Debug().p("found %s:%s"%(key,line))
     rval = line.split()[0].strip()
   return rval
 
 hwInit = False
 hw={}
 def setSpeakerInfo(hw):
-  print_dbg("set speak info:%s %s"%(hw['Speaker'],hw['SpeakerBrand']))
+  Debug().p("set speak info:%s %s"%(hw['Speaker'],hw['SpeakerBrand']))
   cmdHdr = ["amixer", "-c",hw['Speaker']]
   try:
     cmd = cmdHdr[:]
@@ -91,7 +88,7 @@ def makeRc():
           line = line.replace(micKey,hw['Mic'])
         elif line.find(speakerKey) != -1:
           line = line.replace(speakerKey,hw['Speaker'])
-        print_dbg("writing line: %s"%line);
+        Debug().p("writing line: %s"%line);
         rc.write(line)
   except Exception, e:
     print("player error: %s"%repr(e))
@@ -119,7 +116,7 @@ def setVolume(vol):
         cmd.append("cset")  
         cmd.append(vars[0]+","+vars[2])
         cmd.append(str(setVol)) 
-        print_dbg("vol: %s"%cmd)
+        Debug().p("vol: %s"%cmd)
         output = check_output(cmd)
 
   except CalledProcessError as e:
@@ -150,7 +147,7 @@ def getVolume():
 if __name__ == '__main__':
   try:
     os.chdir(os.path.dirname(sys.argv[0]))
-    setDebug(True)
+    Debug(['__main__'])
     makeRc()
     #setVolume(sys.argv[1])
     #print getVolume()

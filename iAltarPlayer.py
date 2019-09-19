@@ -3,15 +3,8 @@ import os
 import sys
 import threading
 import time
-import archive
-import displayHandler
 import random
-from specs import Specs
-from hosts import Hosts
 import base64
-import phraseHandler
-import googleSearch
-import words
 import json
 import requests
 import re
@@ -19,130 +12,125 @@ import urllib2
 import datetime
 import traceback
 import ssl
-import watchdog
 import base64
+
 import textSpeaker
+from archive import Archive
+from displayHandler import DisplayHandler
+from specs import Specs
+from hosts import Hosts
+from phraseHandler import PhraseHandler
+from googleSearch import Search
+from watchdog import Watchdog
+from words import Words
+from singleton import Singleton
+from debug import Debug
 
-
-searchType=None
-
-def setSearchType(t):
-  global searchType
-  searchType = t[0]
-  archive.init = False;
-  return host.jsonStatus("ok")
-
-def setImgData(fname):
-  with open(fname,"rb") as ImageFile:
-    d = {}
-    d['name'] = os.path.basename(fname)
-    d['img'] = base64.b64encode(ImageFile.read())
-  return d
-
-def urlsToImages(urls):
-  cdir = archive.clearArchive()
-  imageCount = 0
-  images = []
-  for url in urls:
-    if debug: print( "url:%s"%url)
-    imageTypes=['full','thumb']
-    raw_img=None
-    for t in imageTypes:
-      try:
-        #startTime = time.time()
-        if debug: print( "open image type:"+t+" image:",url[t] )
-        response=requests.get(url[t],timeout=20)
-        #req = urllib2.Request(url[t],headers={'User-Agent' : "Magic Browser"})
-        #gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
-        #con = urllib2.urlopen( req, context=gcontext,timeout=20)
-        raw_img = response.content
-        #raw_img = urllib2.urlopen(images[imageIndex]).read()
-        #if debug: print( "elapsed:"+str(time.time() - startTime))
-        break;
-      except Exception as e:
-        print "return from exception for type %s url %s: %s"%(t,url[t],e)
-        #print("elapsed:"+str(time.time() - startTime))
-        #print(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
-        #print(traceback.format_exc())
-        continue;
-    if raw_img != None:
-      fname = "%s/urlimage%d.jpg"%(cdir,imageCount)
-      imageCount += 1
-      f = open(fname,"wb")
-      f.write(raw_img)
-      f.close()
-      images.append(fname)
-  return images
-
-debug=True
-class masterThread(threading.Thread):
-  def __init__(self,watchdog):
-    super(masterThread,self).__init__()
-    self.name = "masterThread"
+class iAltar(threading.thread):
+  __metaclass__ = Singleton
+  def __init__(self):
+    super(iAltar,self).__init__()
+    self.name = "iAltar"
     print("starting: %s"%self.name)
-    global searchType
-    searchType = config.specs['defaultSearchType'];
+    self.searchType = Specs().s['defaultSearchType'];
     print("%s: default search type: %s"%(self.name,searchType))
-    self.watchdog = watchdog
-    self.watchdog.add(self)
+    Watchdog().add(self)
 
+  def setSearchType(self,t):
+    self.searchType = t[0]
+    Archive().reset()
+    return Hosts.jsonStatus("ok")
+
+  @staticmethod
+  def setImgData(fname):
+    with open(fname,"rb") as ImageFile:
+      d = {}
+      d['name'] = os.path.basename(fname)
+      d['img'] = base64.b64encode(ImageFile.read())
+      return d
+      
+  @staticmethod
+  def urlsToImages(urls):
+    cdir = Archive().clearArchive()
+    imageCount = 0
+    images = []
+    for url in urls:
+      Debug().p( "url:%s"%url)
+      imageTypes=['full','thumb']
+      raw_img=None
+      for t in imageTypes:
+        try:
+          Debug().p( "open image type:"+t+" image:",url[t] )
+          response=requests.get(url[t],timeout=20)
+          raw_img = response.content
+          break;
+        except Exception as e:
+          print "return from exception for type %s url %s: %s"%(t,url[t],e)
+          continue
+      if raw_img != None:
+        fname = "%s/urlimage%d.jpg"%(cdir,imageCount)
+        imageCount += 1
+        f = open(fname,"wb")
+        f.write(raw_img)
+        f.close()
+        images.append(fname)
+    return image
+  
   def run(self):
-    global searchType
     print("%s in run loop"%self.name)
-    hosts = host.getHosts()
+    hosts = Host().getHosts()
     imageHosts = []
     phraseHosts = []
     lastCacheId = 0
     for h in hosts:
       ip = h['ip']
-      if host.isLocalHost(ip):
+      if Hosts.isLocalHost(ip):
         DisplayHandler.clearCache(None)
       else:
-        host.sendToHost(ip,{'cmd' : 'ClearCache' , 'args' : None});
+        Hosts().sendToHost(ip,{'cmd' : 'ClearCache' , 'args' : None});
 
-      if host.getAttr(ip,'hasDisplay') and host.getAttr(ip,'displayType') == 'Image':
+      if Hosts().getAttr(ip,'hasDisplay') and Hosts().getAttr(ip,'displayType') == 'Image':
         print("%s: display type for %s: image"%(self.name,ip))
         imageHosts.append(ip)
 
-      if host.getAttr(ip,'wantsPhrase'):
+      if Hosts().getAttr(ip,'wantsPhrase'):
         print("%s: wants phrase for %s: "%(self.name,ip))
         phraseHosts.append(ip)
 
     while True:
-      self.watchdog.feed(self)
+      Watchdog().feed(self)
       cacheId = random.randint(10000,20000)
       images=[]
       choices=[]
       urls=[]
-      if searchType == 'Archive':
-        [images,choices] = archive.getArchive()
-        if debug:
-          for i in images:
-            print("%s: image %s"%(self.name,i))
-          for c in choices:
-            print("%s: choice %s"%(self.name,c))
-      elif searchType == 'Google':
-        choices = words.getWords()
-        urls = googleSearch.getUrls(choices)
+      if this.searchType == 'Archive':
+        [images,choices] = Archive().getArchive()
+        for i in images:
+          Debug.p("%s: image %s"%(self.name,i))
+        for c in choices:
+          Debug.p("%s: choice %s"%(self.name,c))
+      elif this.searchType == 'Google':
+        choices = Words().getWords()
+        urls = Search().getUrls(choices)
         if urls == None:
           print("%s Google Error switching to Archive"%self.name)
-          searchType = "Archive"
+          this.searchType = "Archive"
           continue
         if len(urls) == 0:
           print("%s Nothing found try again"%self.name)
           continue
-        images = urlsToImages(googleSearch.getUrls(choices));
+        images = this.urlsToImages(Search().getUrls(choices));
       else:
         print("%s unimplemented type %s switching to archive"%(self.name,searchType))
-        searchType = 'Archive'
+        this.searchType = 'Archive'
       if searchType != 'Archive':
-        archive.putArchive(choices)
+        Archive().putArchive(choices)
 
       phraseArgs = {}
       if len(phraseHosts) != 0:
         phraseArgs['phrase'] = choices
         print("%s sending %s to %s"%(self.name,choices,ip))
-        lang = random.choice(config.specs['langList'])
+        lang = random.choice(Specs().s['langList'])
         file=textSpeaker.makeSpeakFile("%s %s"%(choices[0],choices[1]),lang)
         with open(file,"rb") as sf:
           phraseArgs['phraseData'] = base64.b64encode(sf.read())
@@ -172,36 +160,36 @@ class masterThread(threading.Thread):
             args['imgData'].append(setImgData(fname))
             extra += 1
           cmd = {'cmd' : "AddImage", 'args' : args}
-          if host.isLocalHost(ip):
+          if Hosts().isLocalHost(ip):
             DisplayHandler.addImage(args)
           else:
-            host.sendToHost(ip,cmd)
+            Hosts().sendToHost(ip,cmd)
 
 
         for ip in imageHosts:
           args =[cacheId]
-          if host.isLocalHost(ip):
+          if Hosts().isLocalHost(ip):
             DisplayHandler.setImageDir(args)
           else:
-            host.sendToHost(ip,{'cmd' : 'SetImageDir' , 'args' : args});
+            Hosts().sendToHost(ip,{'cmd' : 'SetImageDir' , 'args' : args});
 
         if lastCacheId != 0:
           for ip in imageHosts:
             args =[lastCacheId]
-            if host.isLocalHost(ip):
+            if Hosts().isLocalHost(ip):
               DisplayHandler.rmCacheDir(args)
             else:
-              host.sendToHost(ip,{'cmd' : 'RmCacheDir' , 'args' : args});
+              Host().sendToHost(ip,{'cmd' : 'RmCacheDir' , 'args' : args});
         lastCacheId = cacheId
 
       if len(phraseHosts) != 0:
         for ip in phraseHosts:
           if host.isLocalHost(ip):
-            PhraseHandler.setPhrase(phraseArgs)
+            PhraseHandler().setPhrase(phraseArgs)
           else:
-            host.sendToHost(ip,{'cmd' : 'Phrase' , 'args' : phraseArgs});
+            Hosts().sendToHost(ip,{'cmd' : 'Phrase' , 'args' : phraseArgs});
     
-      sleepTime = config.specs['masterSleepInterval']  
+      sleepTime = Specs().s['iAltarSleepInterval']  
       print("%s: sleeping %d"%(self.name,sleepTime))
       time.sleep(sleepTime)
     

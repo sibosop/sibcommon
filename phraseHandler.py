@@ -1,69 +1,49 @@
 #!/usr/bin/env python
 import os
 import sys
-home = os.environ['HOME']
-proj = home+"GitProjects/iAltar"
-sys.path.append(proj+"/iAltar")
-sys.path.append(proj+"/config")
-sys.path.append(proj+"/common")
 import json
-import config
 import threading
-import host
 import time
-import displayImage
-import watchdog
+import Queue
+
+from display import Display
+from hosts import Hosts
+from specs import Specs
+from watchdog import Watchdog
 import textSpeaker
-import voice
+from voice import Voice
+from singleton import Singleton
 
-phraseMutex = threading.Lock()
-phrase = {}
 
-name = "Phrase Handler"
-def setPhrase(args):
-  global phrase
-  p = args
-  print("%s setting phrase to %s"%(name,p['phrase']))
-  phraseMutex.acquire()
-  phrase=p
-  phraseMutex.release()
-  return host.jsonStatus("ok")
-
-def getPhrase():
-  global phrase
-  rval = []
-  phraseMutex.acquire()
-  rval = phrase
-  phraseMutex.release()
-  return rval
-
-class phraseThread(threading.Thread):
-  def __init__(self,watchdog):
+class PhraseHandler(object):
+  __metaclass__ = Singleton
+  def __init__(self):
     super(phraseThread,self).__init__()
-    self.name = "phraseThread"
+    self.name = "PhraseHandler"
     print("starting: %s"%self.name)
-    self.watchdog = watchdog
-    self.watchdog.add(self)
-    self.hasDisplay = host.getLocalAttr("hasDisplay")
-    self.displayType = host.getLocalAttr("displayType")
-    self.hasVoice = host.getLocalAttr("hasVoice")
+    Watchdog().add(self)
+    self.hasDisplay = Hosts().getLocalAttr("hasDisplay")
+    self.displayType = Hosts().getLocalAttr("displayType")
+    self.hasVoice = Hosts().getLocalAttr("hasVoice")
+    self.queue = Queue.Queue()
 
+  def setPhrase(self,args):
+    print("%s setting phrase to %s"%(name,args['phrase']))
+    self.queue.put(args)
+    return Host().jsonStatus("ok")
+  
   def run(self):
     print "%s starting"%self.name
-    lastPhrase = {}
-    splash = "%s/%s"%(home,config.specs['splashImg'])
+    splash = Specs().s['splashImg']
     if self.hasDisplay:
       print("%s displaying f:%s"%(name,splash))
-      displayImage.displayImage(splash)
+      Display().image(splash)
     while True:
-      self.watchdog.feed(self)
-      p = getPhrase()
-      if p != lastPhrase:
-        print("%s Displaying Phrase %s"%(self.name,p['phrase']))
-        if self.hasDisplay and self.displayType == "Phrase":
-            displayImage.printText(p['phrase'])
-        if self.hasVoice:
-          voice.sendPhrase(p)
-        lastPhrase = p
-      time.sleep(1)
+      Watchdog().feed(self)
+      p = self.queue.get()
+      print("%s Displaying Phrase %s"%(self.name,p['phrase']))
+      if self.hasDisplay and self.displayType == "Phrase":
+        Display().text(p['phrase'])
+      if self.hasVoice:
+        Voice().sendPhrase(p)
 

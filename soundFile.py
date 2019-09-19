@@ -11,7 +11,7 @@ import threading
 import json
 import shutil
 import time
-from utils import print_dbg
+from debug import Debug
 from singleton import Singleton
 from specs import Specs
 
@@ -29,15 +29,15 @@ class SoundFile(object):
     for d in Specs().s['collections']:
         self.collections.append(d)
   
-    print_dbg(self.collections)
+    Debug().p(self.collections)
     self.currentCollection = self.collections.pop(0)
-    print_dbg("currentCollection: %s"%self.currentCollection['name'])
+    Debug().p("currentCollection: %s"%self.currentCollection['name'])
 
     self.timeout = time.time() + self.currentCollection['time']
 
       
   def testBumpCollection(self):
-    #print_dbg("testBumpCollection time %d timeout %d"%(time.time(),self.timeout))
+    #Debug().p("testBumpCollection time %d timeout %d"%(time.time(),self.timeout))
     if time.time() > self.timeout:
       print("testBumpCollection timeout passed")
       if len(self.collections) == 0:
@@ -52,15 +52,15 @@ class SoundFile(object):
   
   def getSoundEntry(self):
     keys = Specs().s[self.currentCollection['list']]
-    print_dbg("collection-list %s - %s number of keys %d"%(self.currentCollection['name'],self.currentCollection['list'],len(keys)))
+    Debug().p("collection-list %s - %s number of keys %d"%(self.currentCollection['name'],self.currentCollection['list'],len(keys)))
     done = False
     choices = 0
     numChoices = Specs().s['maxEvents']
-    print_dbg("collection: %s number of choices: %d max Events: %d"%(self.currentCollection['name'],self.maxEvents,numChoices))
+    Debug().p("collection: %s number of choices: %d max Events: %d"%(self.currentCollection['name'],self.maxEvents,numChoices))
     rval = []
     while len(rval) < numChoices:
       choice = random.randint(0,len(keys)-1)
-      print_dbg("rval %s"%rval)
+      Debug().p("rval %s"%rval)
       if keys[choice]['name'] in rval:
         continue
       rval.append(keys[choice])
