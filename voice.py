@@ -6,7 +6,6 @@ import threading
 from soundUtils import playSound
 from textSpeaker import makeSpeakFile
 import time
-import config
 import pygame
 import base64
 import Queue
@@ -66,7 +65,7 @@ class Voice(threading.Thread):
         playSound(vt,l,r)
         if reps > 1:
           ts = random.random()
-        else
+        else:
           ts = random.randint(5,10)
           
           

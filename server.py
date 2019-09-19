@@ -67,13 +67,24 @@ class Server(threading.Thread):
       'Upgrade' : Server.doUpgrade
       ,'Poweroff' : Server.doPoweroff
       ,'Reboot' : Server.doReboot
+      ,'Probe' : Server.doProbe
     }
+    
   @staticmethod
   def doExit(num):
     print "Doing Exit with %d"%num
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(num)
+    
+  @staticmethod  
+  def doProbe(args):
+    state = {}
+    state['status'] = "ok"
+    attr = Hosts().getHost(Hosts.getLocalHost())
+    for k in attr.keys():
+      state[k]=attr[k]
+    return json.dumps(state)
 
   @staticmethod
   def doUpgrade(cmd):
@@ -97,9 +108,10 @@ class Server(threading.Thread):
     return status
     
 
-  def registerCommand(self,cmd,callback):
-    Debug().p("%s: registering command %s"%(self.name,cmd))
-    self.commandTable[cmd] = callback
+  def register(self,cmds):
+    Debug().p("%s: registering command %s"%(self.name,cmds))
+    for k in cmds.keys():
+      self.commandTable[k] = cmds[k]
 
   def run(self):
     print "%s starting server"%(self.name)

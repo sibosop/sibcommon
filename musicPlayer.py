@@ -81,8 +81,16 @@ class MusicPlayer(threading.Thread):
       time.sleep(1)
       self.setRunning(SoundFile().testBumpCollection())
     print ("%s done"%self.name)
-    self.done = True
+    
         
     for t in SoundTrackManager().eventThreads:
       t.stop()
+      
+    print "waiting for channels to be done"
+    n = -1
+    while n != 0:
+      n = pygame.mixer.get_busy()
+      print "number busy channels",n
+      time.sleep(1)
     
+    self.done = True

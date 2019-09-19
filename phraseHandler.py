@@ -15,7 +15,7 @@ from voice import Voice
 from singleton import Singleton
 
 
-class PhraseHandler(object):
+class PhraseHandler(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self):
     super(phraseThread,self).__init__()
@@ -26,6 +26,8 @@ class PhraseHandler(object):
     self.displayType = Hosts().getLocalAttr("displayType")
     self.hasVoice = Hosts().getLocalAttr("hasVoice")
     self.queue = Queue.Queue()
+    if Hosts().getLocalAttr("hasServer"):
+      Server().register({'Phrase' : self.setPhrase})
 
   def setPhrase(self,args):
     print("%s setting phrase to %s"%(name,args['phrase']))

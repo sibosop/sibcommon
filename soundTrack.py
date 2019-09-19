@@ -27,7 +27,7 @@ class SoundTrackManager(object):
     self.eventThreads=[]
     self.makeBuffers()
     if Hosts().getLocalAttr("hasServer"):
-      Server().registerCommand("Sound",self.doSound)
+      Server().register({"Sound" : self.doSound})
     
     self.changeNumSoundThreads(Specs().s['numMusicThreads'])
     self.tunings = {}
@@ -61,7 +61,7 @@ class SoundTrackManager(object):
   def startEventThread(self):
     Debug().p("startEventThread")
     self.ecount += 1
-    t=soundTrack(self.ecount)
+    t=SoundTrack(self.ecount)
     self.eventThreads.append(t)
     self.eventThreads[-1].setDaemon(True)
     self.eventThreads[-1].start()

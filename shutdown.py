@@ -8,10 +8,10 @@ import time
 from singleton import Singleton
 from hosts import Hosts
 
-class ShutdownThread(threading.Thread):
+class Shutdown(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self):
-    super(ShutdownThread,self).__init__()
+    super(Shutdown,self).__init__()
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     self.hosts = Hosts().getHosts()

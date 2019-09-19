@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import os
 import sys
-import host
 import pygame
 import sys
 import time
@@ -11,7 +10,7 @@ import audioop
 import re
 from gtts import gTTS
 from pydub import AudioSegment
-
+from hosts import Hosts
 
 
 def convertSampleRate(fname):

@@ -25,6 +25,13 @@ class DisplayHandler(threading.Thread):
     Watchdog().add(self)
     self.currentId = None
     self.queue = Queue.Queue()
+    if Hosts().getLocalAttr('hasServer'):
+      Server().register({
+        'AddImage' : DisplayHandler().addImage
+        ,'RmCacheDir' : DisplayHandler().rmCacheDir
+        ,'SetImageDir' : DisplayHandler().setImageDir
+        ,'ClearCache' : DisplayHandler().clearCache
+      })
     
   def setImageDir(self,args):
     rval = "ok"

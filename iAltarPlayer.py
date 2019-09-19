@@ -26,7 +26,7 @@ from words import Words
 from singleton import Singleton
 from debug import Debug
 
-class iAltar(threading.thread):
+class iAltar(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self):
     super(iAltar,self).__init__()
@@ -35,7 +35,9 @@ class iAltar(threading.thread):
     self.searchType = Specs().s['defaultSearchType'];
     print("%s: default search type: %s"%(self.name,searchType))
     Watchdog().add(self)
-
+    if Hosts().getLocalAttr("hasServer"):
+        Server().register({'Search' : self.setSearchType})
+    
   def setSearchType(self,t):
     self.searchType = t[0]
     Archive().reset()
