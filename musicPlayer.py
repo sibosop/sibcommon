@@ -44,6 +44,7 @@ class MusicPlayer(threading.Thread):
     print("%s starting"%self.name)
     stime = time.time()
     self.setRunning(SoundFile().testBumpCollection())
+    loop = Specs().s['musicLoop']
     while self.isRunning():
       #Debug().p("%s: time %s stime %s"%(self.name,time.time(),stime))
       if time.time() > stime:
@@ -79,18 +80,19 @@ class MusicPlayer(threading.Thread):
         n = pygame.mixer.get_busy()
         #Debug().p("number busy channels %d"%n)
       time.sleep(1)
-      self.setRunning(SoundFile().testBumpCollection())
+      if SoundFile().testBumpCollection() is False:
+        print "waiting for channels to be done"
+        n = -1
+        while n != 0:
+          n = pygame.mixer.get_busy()
+          print "number busy channels",n
+          time.sleep(1)
+        if loop:
+          SoundFile().reset()
+        else:
+          self.SetRunning(false)
+          
     print ("%s done"%self.name)
-    
-        
     for t in SoundTrackManager().eventThreads:
       t.stop()
-      
-    print "waiting for channels to be done"
-    n = -1
-    while n != 0:
-      n = pygame.mixer.get_busy()
-      print "number busy channels",n
-      time.sleep(1)
-    
     self.done = True

@@ -18,9 +18,12 @@ from specs import Specs
 class SoundFile(object):
   __metaclass__ = Singleton
   def __init__(self):
-    self.baseTime = time.time()
     self.listMutex=threading.Lock()
     self.maxEvents = 2
+    self.reset()
+    
+  def reset(self):
+    self.baseTime = time.time()
     self.collections = []
     self.currentCollection = ""
     self.timeout = 0
@@ -28,11 +31,9 @@ class SoundFile(object):
     self.currentCollection = ""
     for d in Specs().s['collections']:
         self.collections.append(d)
-  
     Debug().p(self.collections)
     self.currentCollection = self.collections.pop(0)
     Debug().p("currentCollection: %s"%self.currentCollection['name'])
-
     self.timeout = time.time() + self.currentCollection['time']
 
       

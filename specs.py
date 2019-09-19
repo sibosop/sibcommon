@@ -18,9 +18,15 @@ class Specs(object):
       for f in self.s['include']:
         path="%s/%s.json"%(self.specDir,f)
         Debug().p("adding %s to specs"%path)
+        tmp = {}
         with open(path) as sf:
           tmp = json.load(sf)
-        self.s.update(tmp)
+        for k in tmp.keys():
+          if k not in self.s:
+            self.s[k] = tmp[k]
+          else:
+            Debug().p("ignoring already set k %s"%k)
+          
     Debug().p("%s"%(self.s))
   
 
