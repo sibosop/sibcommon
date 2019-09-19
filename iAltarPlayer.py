@@ -25,6 +25,7 @@ from watchdog import Watchdog
 from words import Words
 from singleton import Singleton
 from debug import Debug
+from server import Server
 
 class iAltar(threading.Thread):
   __metaclass__ = Singleton
@@ -33,7 +34,7 @@ class iAltar(threading.Thread):
     self.name = "iAltar"
     print("starting: %s"%self.name)
     self.searchType = Specs().s['defaultSearchType'];
-    print("%s: default search type: %s"%(self.name,searchType))
+    print("%s: default search type: %s"%(self.name,self.searchType))
     Watchdog().add(self)
     if Hosts().getLocalAttr("hasServer"):
         Server().register({'Search' : self.setSearchType})
@@ -80,7 +81,7 @@ class iAltar(threading.Thread):
   
   def run(self):
     print("%s in run loop"%self.name)
-    hosts = Host().getHosts()
+    hosts = Hosts().getHosts()
     imageHosts = []
     phraseHosts = []
     lastCacheId = 0
@@ -95,7 +96,7 @@ class iAltar(threading.Thread):
         print("%s: display type for %s: image"%(self.name,ip))
         imageHosts.append(ip)
 
-      if Hosts().getAttr(ip,'wantsPhrase'):
+      if Hosts().getAttr(ip,'hasPhrase'):
         print("%s: wants phrase for %s: "%(self.name,ip))
         phraseHosts.append(ip)
 
@@ -105,27 +106,27 @@ class iAltar(threading.Thread):
       images=[]
       choices=[]
       urls=[]
-      if this.searchType == 'Archive':
+      if  self.searchType == 'Archive':
         [images,choices] = Archive().getArchive()
         for i in images:
-          Debug.p("%s: image %s"%(self.name,i))
+          Debug().p("%s: image %s"%(self.name,i))
         for c in choices:
-          Debug.p("%s: choice %s"%(self.name,c))
-      elif this.searchType == 'Google':
+          Debug().p("%s: choice %s"%(self.name,c))
+      elif self.searchType == 'Google':
         choices = Words().getWords()
         urls = Search().getUrls(choices)
         if urls == None:
           print("%s Google Error switching to Archive"%self.name)
-          this.searchType = "Archive"
+          self.searchType = "Archive"
           continue
         if len(urls) == 0:
           print("%s Nothing found try again"%self.name)
           continue
-        images = this.urlsToImages(Search().getUrls(choices));
+        images = self.urlsToImages(Search().getUrls(choices));
       else:
         print("%s unimplemented type %s switching to archive"%(self.name,searchType))
-        this.searchType = 'Archive'
-      if searchType != 'Archive':
+        self.searchType = 'Archive'
+      if self.searchType != 'Archive':
         Archive().putArchive(choices)
 
       phraseArgs = {}
@@ -155,15 +156,15 @@ class iAltar(threading.Thread):
           args['imgData'] = []
           for i in range(0,imagesPerHost):
             fname = images[i+count]
-            args['imgData'].append(setImgData(fname))
+            args['imgData'].append(self.setImgData(fname))
           count += imagesPerHost
           if extra < extraImages:
             fname = images[count+extra]
-            args['imgData'].append(setImgData(fname))
+            args['imgData'].append(self.setImgData(fname))
             extra += 1
           cmd = {'cmd' : "AddImage", 'args' : args}
           if Hosts().isLocalHost(ip):
-            DisplayHandler.addImage(args)
+            DisplayHandler().addImage(args)
           else:
             Hosts().sendToHost(ip,cmd)
 
@@ -171,7 +172,7 @@ class iAltar(threading.Thread):
         for ip in imageHosts:
           args =[cacheId]
           if Hosts().isLocalHost(ip):
-            DisplayHandler.setImageDir(args)
+            DisplayHandler().setImageDir(args)
           else:
             Hosts().sendToHost(ip,{'cmd' : 'SetImageDir' , 'args' : args});
 

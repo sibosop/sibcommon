@@ -15,10 +15,12 @@ from specs import Specs
 from debug import Debug
 from hosts import Hosts
 from utils import mkpath
-from archive import Archive
-
+from singleton import Singleton
+from server import Server
+from display import Display
 class DisplayHandler(threading.Thread):
-  def __init__(self,watchdog):
+  __metaclass__ = Singleton
+  def __init__(self):
     super(DisplayHandler,self).__init__()
     self.name = "DisplayHandler"
     print("starting: %s"%self.name)
@@ -27,16 +29,16 @@ class DisplayHandler(threading.Thread):
     self.queue = Queue.Queue()
     if Hosts().getLocalAttr('hasServer'):
       Server().register({
-        'AddImage' : DisplayHandler().addImage
-        ,'RmCacheDir' : DisplayHandler().rmCacheDir
-        ,'SetImageDir' : DisplayHandler().setImageDir
-        ,'ClearCache' : DisplayHandler().clearCache
+        'AddImage' : self.addImage
+        ,'RmCacheDir' : self.rmCacheDir
+        ,'SetImageDir' : self.setImageDir
+        ,'ClearCache' : self.clearCache
       })
     
   def setImageDir(self,args):
     rval = "ok"
     id = args[0]
-    path = Archive().getCacheDir(id)
+    path = self.getCacheDir(id)
     self.queue.put(path)
     print("SetImageDir to %s: %s"%(path,rval))
     return Hosts.jsonStatus(rval)
@@ -60,6 +62,12 @@ class DisplayHandler(threading.Thread):
     path = "%s/%d"%(DisplayHandler.getImageCache(),id)
     return mkpath(path)
     
+  @staticmethod 
+  def getCacheDir(id):
+    path = DisplayHandler.getImageCache()+"/%d"%id
+    return mkpath(path)
+  
+  @staticmethod 
   def rmCacheDir(args):
     rval = "ok"
     id = args[0]
@@ -78,7 +86,7 @@ class DisplayHandler(threading.Thread):
   
   @staticmethod 
   def clearCache(args):
-    path = getImageCache()
+    path = DisplayHandler.getImageCache()
     for f in os.listdir(path):
       try:
         r = path+"/%s"%f
@@ -103,7 +111,7 @@ class DisplayHandler(threading.Thread):
       Watchdog().feed(self)
       try:
         path = self.queue.get(timeout=ts)
-      except Queue.empty:
+      except Queue.Empty:
         path = lastImageDir
         
       print("%s: path %s lastImageDir %s"%(self.name,path,lastImageDir))

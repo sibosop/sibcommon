@@ -60,7 +60,7 @@ class Hosts(object):
     try:
       print("cmd %s"%cmd)
       timeout = self.timeout
-      if 'timeout' in cmd['args']:
+      if cmd['args'] is not None and 'timeout' in cmd['args']:
         print("args %s"%cmd['args'])
         timeout = cmd['args']['timeout']
       Debug().p("send to host: %s %s timeout=%d"%(ip,cmd,timeout))
