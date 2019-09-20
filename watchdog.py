@@ -7,7 +7,7 @@ import threading
 
 from specs import Specs
 from singleton import Singleton
-
+from debug import Debug
 
 
 class Watchdog(threading.Thread):
@@ -18,14 +18,14 @@ class Watchdog(threading.Thread):
     self.name = "WatchDog"
     self.tlist = {}
     self.timeoutInterval = Specs().s['watchdogTimeout']
-
+    
   def feed(self,t):
     self.wdLock.acquire()
     self.tlist[t] = time.time()
     self.wdLock.release()
 
   def add(self,t):
-    print ("%s adding %s"%(self.name,t.name))
+    Debug().p ("%s adding %s"%(self.name,t.name))
     self.feed(t)
 
   def run (self):

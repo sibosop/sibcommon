@@ -12,13 +12,14 @@ from specs import Specs
 from watchdog import Watchdog
 import textSpeaker
 from voice import Voice
+from server import Server
 from singleton import Singleton
-
+from debug import Debug
 
 class PhraseHandler(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self):
-    super(phraseThread,self).__init__()
+    super(PhraseHandler,self).__init__()
     self.name = "PhraseHandler"
     print("starting: %s"%self.name)
     Watchdog().add(self)
@@ -30,20 +31,20 @@ class PhraseHandler(threading.Thread):
       Server().register({'Phrase' : self.setPhrase})
 
   def setPhrase(self,args):
-    print("%s setting phrase to %s"%(name,args['phrase']))
+    Debug().p("%s setting phrase to %s"%(self.name,args['phrase']))
     self.queue.put(args)
-    return Host().jsonStatus("ok")
+    return Hosts().jsonStatus("ok")
   
   def run(self):
     print "%s starting"%self.name
     splash = Specs().s['splashImg']
     if self.hasDisplay:
-      print("%s displaying f:%s"%(name,splash))
+      Debug().p("%s displaying f:%s"%(self.name,splash))
       Display().image(splash)
     while True:
       Watchdog().feed(self)
       p = self.queue.get()
-      print("%s Displaying Phrase %s"%(self.name,p['phrase']))
+      Debug().p("%s Displaying Phrase %s"%(self.name,p['phrase']))
       if self.hasDisplay and self.displayType == "Phrase":
         Display().text(p['phrase'])
       if self.hasVoice:

@@ -72,7 +72,7 @@ class MusicPlayer(threading.Thread):
               test = f.read()
               Debug().p("%s: got response:%s"%(self.name,test))
             except urllib2.URLError as ve:
-              print("%s: got URLError %s"%(self.name,ve))
+              Debug().p("%s: got URLError %s"%(self.name,ve))
               continue
         offset = random.randint(Specs().s['minChange'],Specs().s['maxChange'])
         stime = time.time() + offset

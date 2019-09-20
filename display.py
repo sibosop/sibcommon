@@ -18,7 +18,7 @@ class Display(object):
     pygame.mouse.set_visible(False);
     fontSize = Hosts().getLocalAttr('fontSize')
     fontFile = Specs().s['fontFile']
-    print("seting font to %s %d"%(fontFile,fontSize))
+    Debug().p("setting font to %s size %d"%(fontFile,fontSize))
     self.myFont = pygame.font.Font("%s/%s"%("speclib",fontFile), fontSize)
     if Hosts().getLocalAttr("hostType") == "raspberry":
       self.screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
@@ -31,7 +31,7 @@ class Display(object):
       image = pygame.image.load(img);
     except:
       print("Display can't render "+img)
-      splash = "%s/%s"%(Specs.s['splashImg'])
+      splash = "%s"%(Specs().s['splashImg'])
       image = pygame.image.load(splash)
       return False
     ws=self.screen.get_width()

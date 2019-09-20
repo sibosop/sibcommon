@@ -91,14 +91,14 @@ class iAltar(threading.Thread):
         DisplayHandler.clearCache(None)
       else:
         Hosts().sendToHost(ip,{'cmd' : 'ClearCache' , 'args' : None});
+      if Hosts().getAttr(ip,'hasiAltar'):
+        if Hosts().getAttr(ip,'hasDisplay') and Hosts().getAttr(ip,'displayType') == 'Image':
+          Debug().p("%s: display type for %s: image"%(self.name,ip))
+          imageHosts.append(ip)
 
-      if Hosts().getAttr(ip,'hasDisplay') and Hosts().getAttr(ip,'displayType') == 'Image':
-        print("%s: display type for %s: image"%(self.name,ip))
-        imageHosts.append(ip)
-
-      if Hosts().getAttr(ip,'hasPhrase'):
-        print("%s: wants phrase for %s: "%(self.name,ip))
-        phraseHosts.append(ip)
+        if Hosts().getAttr(ip,'hasPhrase'):
+          Debug().p("%s: wants phrase for %s: "%(self.name,ip))
+          phraseHosts.append(ip)
 
     while True:
       Watchdog().feed(self)
@@ -116,15 +116,15 @@ class iAltar(threading.Thread):
         choices = Words().getWords()
         urls = Search().getUrls(choices)
         if urls == None:
-          print("%s Google Error switching to Archive"%self.name)
+          Debug().p("%s Google Error switching to Archive"%self.name)
           self.searchType = "Archive"
           continue
         if len(urls) == 0:
-          print("%s Nothing found try again"%self.name)
+          Debug().p("%s Nothing found try again"%self.name)
           continue
         images = self.urlsToImages(Search().getUrls(choices));
       else:
-        print("%s unimplemented type %s switching to archive"%(self.name,searchType))
+        Debug().p("%s unimplemented type %s switching to archive"%(self.name,searchType))
         self.searchType = 'Archive'
       if self.searchType != 'Archive':
         Archive().putArchive(choices)
@@ -132,7 +132,7 @@ class iAltar(threading.Thread):
       phraseArgs = {}
       if len(phraseHosts) != 0:
         phraseArgs['phrase'] = choices
-        print("%s sending %s to %s"%(self.name,choices,ip))
+        Debug().p("%s sending %s to %s"%(self.name,choices,ip))
         lang = random.choice(Specs().s['langList'])
         file=textSpeaker.makeSpeakFile("%s %s"%(choices[0],choices[1]),lang)
         with open(file,"rb") as sf:
@@ -147,7 +147,7 @@ class iAltar(threading.Thread):
         extraImages = numImages % len(imageHosts)
         extra = 0
         count = 0
-        print(
+        Debug().p(
               "%s numImages:%d imagesPerHost:%d extraImages:%d"
               %(self.name,numImages,imagesPerHost,extraImages))
         for ip in imageHosts:
@@ -182,17 +182,17 @@ class iAltar(threading.Thread):
             if Hosts().isLocalHost(ip):
               DisplayHandler.rmCacheDir(args)
             else:
-              Host().sendToHost(ip,{'cmd' : 'RmCacheDir' , 'args' : args});
+              Hosts().sendToHost(ip,{'cmd' : 'RmCacheDir' , 'args' : args});
         lastCacheId = cacheId
 
       if len(phraseHosts) != 0:
         for ip in phraseHosts:
-          if host.isLocalHost(ip):
+          if Hosts().isLocalHost(ip):
             PhraseHandler().setPhrase(phraseArgs)
           else:
             Hosts().sendToHost(ip,{'cmd' : 'Phrase' , 'args' : phraseArgs});
     
       sleepTime = Specs().s['iAltarSleepInterval']  
-      print("%s: sleeping %d"%(self.name,sleepTime))
+      Debug().p("%s: sleeping %d"%(self.name,sleepTime))
       time.sleep(sleepTime)
     

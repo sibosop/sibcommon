@@ -11,6 +11,9 @@ import re
 from gtts import gTTS
 from pydub import AudioSegment
 from hosts import Hosts
+from debug import Debug
+from specs import Specs
+from utils import internetOn
 
 
 def convertSampleRate(fname):
@@ -20,7 +23,7 @@ def convertSampleRate(fname):
   rate=spf.getframerate()
   signal = spf.readframes(-1)
 
-  if debug: print("convertSampleRate"
+  Debug().p("convertSampleRate"
     + " rate:"+str(rate)
     + " channels:"+str(channels)
     + " width:"+str(width)
@@ -39,28 +42,28 @@ def makeSpeakFile(line,language=''):
   rval = None 
   if language == '':
     language  = 'en-us'
-  if debug: print("make speak file:"+line+" lang:"+str(language))
+  Debug().p("make speak file:"+line+" lang:"+str(language))
   try:
-    fnameRoot = "%s/%s/%s"%(home,config.specs['tmpdir'],re.sub('\W+','_',line))
-    if host.internetOn() and language != "es":
-      if debug: print("speak: internet on using gTTS");
-      if debug: print("playText line:"+line)
+    fnameRoot = "%s/%s"%(Specs().s['tmpdir'],re.sub('\W+','_',line))
+    if internetOn() and language != "es":
+      Debug().p("speak: internet on using gTTS");
+      Debug().p("playText line:"+line)
       fname = fnameRoot + ".mp3"
-      if debug: print("speak:"+fname)
+      Debug().p("speak:"+fname)
       tts1=gTTS(text=line,lang=language)
-      if debug: print("tts1:%s"%tts1)
+      Debug().p("tts1:%s"%tts1)
       tts1.save(fname)
-      if debug: print("speak:"+fname)
+      Debug().p("speak:"+fname)
       sound = AudioSegment.from_mp3(fname)
       os.unlink(fname)
       fname = fnameRoot + ".wav"
-      if debug: print("speak:"+fname)
+      Debug().p("speak:"+fname)
       sound.export(fname, format="wav")
       rval = fname
     else:
       print("speak: internet off using espeak");
       fname = fnameRoot + ".wav"
-      if debug: print("speak:"+fname)
+      Debug().p("speak:"+fname)
       os.system("espeak -w "+fname+" '"+line+"'")
       rval = fname
     convertSampleRate(rval)

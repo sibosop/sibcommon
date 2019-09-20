@@ -40,15 +40,15 @@ class SoundFile(object):
   def testBumpCollection(self):
     #Debug().p("testBumpCollection time %d timeout %d"%(time.time(),self.timeout))
     if time.time() > self.timeout:
-      print("testBumpCollection timeout passed")
+      Debug().p("testBumpCollection timeout passed")
       if len(self.collections) == 0:
-        print("testBumpCollection done")
+        Debug().p("testBumpCollection done")
         return False
     
       self.currentCollection = self.collections.pop(0)
-      print("new current collection %s"%self.currentCollection['name'])
+      Debug().p("new current collection %s"%self.currentCollection['name'])
       self.timeout = time.time() + self.currentCollection['time']
-      print("new timeout %d"%self.timeout)
+      Debug().p("new timeout %d"%self.timeout)
     return True
   
   def getSoundEntry(self):

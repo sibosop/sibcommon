@@ -27,19 +27,19 @@ class Voice(threading.Thread):
     speakText = p[0]+" "+p[1]
     file=None
     if 'phraseData' in args:
-      print("decoding voice file data from args")
+      Debug().p("decoding voice file data from args")
       file = "%s/%s_%s.mp3"%(Specs().s['tmpdir'],p[0],p[1])
-      print("decoding to file %s"%file)
+      Debug().p("decoding to file %s"%file)
       with open(file, 'wb') as f:
         f.write(base64.b64decode(args['phraseData']))
     else:
       while file is None:
         lang = random.choice(config.specs['langList'])
         file=textSpeaker.makeSpeakFile(speakText,lang)
-    print "voice sound set to: %s"%file
+    Debug().p( "voice sound set to: %s"%file)
     voiceSound = pygame.mixer.Sound(file)
     self.queue.put(voiceSound)
-    print("checkText unlinking: %s voiceSound: %s"%(file,voiceSound))
+    Debug().p("checkText unlinking: %s voiceSound: %s"%(file,voiceSound))
     os.unlink(file)
   
     
@@ -53,7 +53,7 @@ class Voice(threading.Thread):
         reps = random.randint(2,4)
       else:
         reps = 1
-      Debug().p("reps: %d"%reps)
+      Debug().p("reps on next: %d"%reps)
       for i in range(reps):
         l = (random.random()*(voiceMaxVol-self.voiceMinVol))+self.voiceMinVol
         r = (random.random()*(voiceMaxVol-self.voiceMinVol))+self.voiceMinVol

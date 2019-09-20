@@ -58,7 +58,7 @@ class Hosts(object):
   def sendToHost(self,ip,cmd):
     rval = True
     try:
-      print("cmd %s"%cmd)
+      Debug().p("cmd %s"%cmd['cmd'])
       timeout = self.timeout
       if cmd['args'] is not None and 'timeout' in cmd['args']:
         print("args %s"%cmd['args'])
@@ -72,8 +72,8 @@ class Hosts(object):
       f = urllib2.urlopen(req,None,timeout)
       test = f.read()
       Debug().p("got response: %s"%test)
-    except Exception, e:
-        traceback.print_exc()
+    except urllib2.URLError, e:
+        Debug().p("ip %s:%s"%(ip,e))
       
 
   def sendWithSubnet(self,ip,cmd):
