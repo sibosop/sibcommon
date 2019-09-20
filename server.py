@@ -36,7 +36,7 @@ class MyHandler(BaseHTTPRequestHandler):
     content_len = int(self.headers.getheader('content-length', 0))
     post_body = self.rfile.read(content_len)
     
-    Debug().p("Post: %s"%str(post_body))
+    #Debug().p("Post: %s"%str(post_body))
     status = Server().cmdHandler(json.loads(post_body))
     self.send_response(200)
     self.end_headers()

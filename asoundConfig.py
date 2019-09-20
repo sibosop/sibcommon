@@ -9,7 +9,11 @@ speakerKey="SPEAKER_CARD"
 from debug import Debug
 usbMic="USB-Audio - USB PnP Sound Device"
 
-defaultSpeaker = {'search' : "bcm2835 - bcm2835 ALSA", 'name' : "MINI" }
+# various managling of the MINI plugs
+defaultSpeakers = [
+  {'search' : "bcm2835 - bcm2835 ALSA", 'name' : "MINI" }
+  ,{'search' : "bcm2835_alsa - bcm2835 ALSA", 'name' : "MINI" }
+  ]
 
 speakerLookup = [ 
   {'search' : "USB-Audio - USB2.0 Device", 'name' : "HONK" }
@@ -19,6 +23,7 @@ speakerLookup = [
 
 def getCardNum(line,key):
   rval=""
+  Debug().p("line %s key %s"%(line,key))
   if line.find(key) != -1:
     Debug().p("found %s:%s"%(key,line))
     rval = line.split()[0].strip()
@@ -31,6 +36,7 @@ def setSpeakerInfo(hw):
   cmdHdr = ["amixer", "-c",hw['Speaker']]
   try:
     cmd = cmdHdr[:]
+    Debug().p(cmd)
     output = check_output(cmd)
     lines = output.split("\n");
     for l in lines:
@@ -40,6 +46,7 @@ def setSpeakerInfo(hw):
         hw['min'] = vars[2]
         hw['max'] = vars[4]
   except CalledProcessError as e:
+    traceback.print_exc()
     print(e.output)
 
 
@@ -65,10 +72,12 @@ def getHw():
     if hw['Speaker'] == -1:
       with open(cardPath) as f:
         for line in f:
-          t = getCardNum(line,defaultSpeaker['search'])
-          if t != "":
-            hw['Speaker'] = t
-            hw['SpeakerBrand'] = defaultSpeaker['name']
+          for d in defaultSpeakers:
+            t = getCardNum(line,d['search'])
+            if t != "":
+              hw['Speaker'] = t
+              hw['SpeakerBrand'] = d['name']
+              break
 
     #retrieve info about speaker
     setSpeakerInfo(hw)
@@ -91,6 +100,7 @@ def makeRc():
         Debug().p("writing line: %s"%line);
         rc.write(line)
   except Exception, e:
+    traceback.print_exc()
     print("player error: %s"%repr(e))
 
 # amixer -c 2 cset numid=3,name='PCM Playback Volume' 100
@@ -120,6 +130,7 @@ def setVolume(vol):
         output = check_output(cmd)
 
   except CalledProcessError as e:
+    traceback.print_exc()
     print(e.output)
 
 def getVolume():
@@ -140,6 +151,7 @@ def getVolume():
         vol=int(round(float(var[0])/volRat))
 
   except CalledProcessError as e:
+    traceback.print_exc()
     print(e.output)
 
   return vol
