@@ -6,14 +6,16 @@ from subprocess import CalledProcessError, check_output
 
 def upgrade():
   try:
-    print("DOING UPGRADE current dir %s"%os.getcwd())
+    print("DOING UPGRADE")
     cmd = ['git','pull','origin','master']
     print("upgrade: %s"%(cmd))
     output = check_output(cmd)
-    cmd = ['git','submodule','update']
+    cmd = ['git','-C','sibcommon','pull','origin','master']
     print("upgrade: %s"%(cmd))
     output = check_output(cmd)
-    print("upgrade: %s"%output)
+    cmd = ['git','-C','speclib','pull','origin','master']
+    print("upgrade: %s"%(cmd))
+    output = check_output(cmd)
   except Exception, e:
     print("upgrade error: "+repr(e))
 
