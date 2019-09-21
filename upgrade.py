@@ -8,12 +8,13 @@ def upgrade():
   try:
     print("DOING UPGRADE current dir %s"%os.getcwd())
     cmd = ['git','pull','origin','master']
-    print("upgrade: %s"%(cmd))
+    os.chdir("sibcommon")
     output = check_output(cmd)
-    cmd = ['git','submodule','update']
     print("upgrade: %s"%(cmd))
+    os.chdir("../speclib")
     output = check_output(cmd)
     print("upgrade: %s"%output)
+    os.chdir("..")
   except Exception, e:
     print("upgrade error: "+repr(e))
 
