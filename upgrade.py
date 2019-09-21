@@ -8,7 +8,6 @@ def upgrade():
   try:
     print("DOING UPGRADE")
     cmd = ['git','pull','origin','master']
-    os.chdir("sibcommon")
     output = check_output(cmd)
     cmd = ['git','-C','sibcommon','pull','origin','master']
     print("upgrade: %s"%(cmd))
