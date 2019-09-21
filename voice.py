@@ -59,6 +59,9 @@ class Voice(threading.Thread):
         r = (random.random()*(voiceMaxVol-self.voiceMinVol))+self.voiceMinVol
         try:
           vt = self.queue.get(timeout=ts)
+          if type(vt) == "str":
+            print("%s stopping"%p.name)
+            return
           Debug().p("voice track change")
         except Queue.Empty:
           pass

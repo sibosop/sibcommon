@@ -44,6 +44,9 @@ class PhraseHandler(threading.Thread):
     while True:
       Watchdog().feed(self)
       p = self.queue.get()
+      if type(p) == 'str' and p == "__stop__":
+        print("%s stopping"%p.name)
+        break
       Debug().p("%s Displaying Phrase %s"%(self.name,p['phrase']))
       if self.hasDisplay and self.displayType == "Phrase":
         Display().text(p['phrase'])

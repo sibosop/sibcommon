@@ -8,6 +8,7 @@ from singleton import Singleton
 from specs import Specs
 import mido
 import threading
+import Queue
 
 class Event(object):
   def __init__(self):
@@ -41,6 +42,7 @@ class MidiHandler(threading.Thread):
       for i in range(0,128):
         self.controlMap.append(self.findEvent(i,desc['controls']))
         self.noteMap.append(self.findEvent(i,desc['notes']))
+    self.queue = Queue.Queue()
         
     self.rtMap = {
       'clock' : self.nop
@@ -98,6 +100,13 @@ class MidiHandler(threading.Thread):
   def run(self):
     print("%s starting"%self.name)
     while self.running:
+      try:
+        msg = self.queue.get_nowait()
+        if msg = "__stop__":
+          break
+      except Queue.Empty:
+        pass
+        
       for msg in mido.ports.multi_receive(self.inputs):
         self.rtMap[msg.type](msg)
   

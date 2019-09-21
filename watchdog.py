@@ -8,6 +8,7 @@ import threading
 from specs import Specs
 from singleton import Singleton
 from debug import Debug
+import Queue
 
 
 class Watchdog(threading.Thread):
@@ -18,6 +19,7 @@ class Watchdog(threading.Thread):
     self.name = "WatchDog"
     self.tlist = {}
     self.timeoutInterval = Specs().s['watchdogTimeout']
+    self.queue = Queue.Queue()
     
   def feed(self,t):
     self.wdLock.acquire()
@@ -30,6 +32,14 @@ class Watchdog(threading.Thread):
 
   def run (self):
     while True:
+      try:
+        msg = self.queue.get_nowait()
+        if msg == "__stop__:
+          print("%s stopping"%self.name)
+          return
+      except Queue.Empty:
+        pass
+      
       c = time.time()
       for k in self.tlist.keys():
         self.wdLock.acquire()

@@ -7,6 +7,7 @@ import RPi.GPIO as GPIO
 import time
 from singleton import Singleton
 from hosts import Hosts
+import Queue
 
 class Shutdown(threading.Thread):
   __metaclass__ = Singleton
@@ -16,6 +17,7 @@ class Shutdown(threading.Thread):
     GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_UP)
     self.hosts = Hosts().getHosts()
     self.name = "Shutdown Thread"
+    self.queue = Queue.Queue()
 
   def doShutdown(self):
     print "%s doing shutdown"%self.name
@@ -34,6 +36,10 @@ class Shutdown(threading.Thread):
   def run(self):
     print "%s starting"%self.name
     while GPIO.input(16):
-      time.sleep(1)
+      try:
+        self.queue.get(timeout=1)
+      except Queue.Empty:
+        print("%s stopping"%self.name)
+        return
       continue
     self.doShutdown()

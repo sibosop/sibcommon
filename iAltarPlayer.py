@@ -27,6 +27,7 @@ from words import Words
 from singleton import Singleton
 from debug import Debug
 from server import Server
+import Queue
 
 class iAltar(threading.Thread):
   __metaclass__ = Singleton
@@ -39,6 +40,7 @@ class iAltar(threading.Thread):
     Watchdog().add(self)
     if Hosts().getLocalAttr("hasServer"):
         Server().register({'Search' : self.setSearchType})
+    self.queue = Queue.Queue()
     
   def setSearchType(self,t):
     self.searchType = t[0]
@@ -103,6 +105,14 @@ class iAltar(threading.Thread):
 
     while True:
       try:
+        try:
+          msg = self.queue.get_nowait()
+          if msg == "__stop__"
+            print("%s: stopping"%self.name)
+          break
+        except Queue.Empty:
+          pass
+        
         Watchdog().feed(self)
         cacheId = random.randint(10000,20000)
         images=[]

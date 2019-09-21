@@ -114,6 +114,9 @@ class DisplayHandler(threading.Thread):
       except Queue.Empty:
         path = lastImageDir
         
+      if path == "__Stop__":
+        break
+        
       print("%s: path %s lastImageDir %s"%(self.name,path,lastImageDir))
       if path != lastImageDir:
         print("%s reseting imageIndex"%self.name)

@@ -16,6 +16,7 @@ from debug import Debug
 from soundTrack import SoundTrackManager
 from specs import Specs
 from hosts import Hosts
+import Queue
 
 class MusicPlayer(threading.Thread):
   def __init__(self):
@@ -24,6 +25,7 @@ class MusicPlayer(threading.Thread):
     self.name= "MusicPlayer"
     self.running = None
     self.mutex = threading.Lock()
+    self.queue = Queue.Queue()
     
   def stop(self):
     print_dbg("%s: stop request"%self.name)
@@ -47,6 +49,13 @@ class MusicPlayer(threading.Thread):
     loop = Specs().s['musicLoop']
     while self.isRunning():
       #Debug().p("%s: time %s stime %s"%(self.name,time.time(),stime))
+      try:
+        msg = self.queue.get_nowait()
+        if msg == "__stop__":
+          break
+      except Queue.Empty:
+        pass
+        
       if time.time() > stime:
         entry = SoundFile().getSoundEntry()
         Debug().p("player choosing %s"%entry)

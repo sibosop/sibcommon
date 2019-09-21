@@ -169,6 +169,9 @@ class SoundTrack(threading.Thread):
       Debug().p("%s: timeout %s"%(self.name,ts))
       try:
         test = self.queue.get(timeout=ts)
+        if type(test) == 'str':
+          print("%s stopping"%p.name)
+          break
       except Queue.Empty:
         test = cs
       cs = test
