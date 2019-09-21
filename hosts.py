@@ -61,12 +61,11 @@ class Hosts(object):
       Debug().p("cmd %s"%cmd['cmd'])
       timeout = self.timeout
       if cmd['args'] is not None and 'timeout' in cmd['args']:
-        print("args %s"%cmd['args'])
+        print("timeout %d"%cmd['args']['timeout'])
         timeout = cmd['args']['timeout']
-      Debug().p("send to host: %s %s timeout=%d"%(ip,cmd,timeout))
+      Debug().p("send to host: %s %s timeout=%d"%(ip,cmd['cmd'],timeout))
       url = "http://"+ip+":8080"
       Debug().p("url: %s"%url)
-      Debug().p("cmd json: %s"%json.dumps(cmd))
       req = urllib2.Request(url
               ,json.dumps(cmd),{'Content-Type': 'application/json'})
       f = urllib2.urlopen(req,None,timeout)
