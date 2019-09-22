@@ -34,7 +34,7 @@ class Watchdog(threading.Thread):
     while True:
       try:
         msg = self.queue.get_nowait()
-        if msg == "__stop__:
+        if msg == "__stop__":
           print("%s stopping"%self.name)
           return
       except Queue.Empty:

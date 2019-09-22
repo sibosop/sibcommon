@@ -18,6 +18,7 @@ from specs import Specs
 from hosts import Hosts
 import Queue
 
+
 class MusicPlayer(threading.Thread):
   def __init__(self):
     super(MusicPlayer,self).__init__()
@@ -26,6 +27,7 @@ class MusicPlayer(threading.Thread):
     self.running = None
     self.mutex = threading.Lock()
     self.queue = Queue.Queue()
+    
     
   def stop(self):
     print_dbg("%s: stop request"%self.name)
@@ -42,19 +44,31 @@ class MusicPlayer(threading.Thread):
     flag = self.running
     self.mutex.release()
     return flag
+    
+  def checkStop(self):
+    try:
+      msg = self.queue.get(timeout=1)
+      if msg == "__stop__":
+        self.doExit()
+        return True
+    except Queue.Empty:
+      pass
+    return False
+    
+  def doExit(self):
+      print ("%s done"%self.name)
+      for t in SoundTrackManager().eventThreads:
+        t.stop()
+      self.done = True
+      
   def run(self):
     print("%s starting"%self.name)
     stime = time.time()
     self.setRunning(SoundFile().testBumpCollection())
     loop = Specs().s['musicLoop']
     while self.isRunning():
-      #Debug().p("%s: time %s stime %s"%(self.name,time.time(),stime))
-      try:
-        msg = self.queue.get_nowait()
-        if msg == "__stop__":
-          break
-      except Queue.Empty:
-        pass
+      if self.checkStop():
+        return
         
       if time.time() > stime:
         entry = SoundFile().getSoundEntry()
@@ -81,27 +95,24 @@ class MusicPlayer(threading.Thread):
               test = f.read()
               Debug().p("%s: got response:%s"%(self.name,test))
             except urllib2.URLError as ve:
-              Debug().p("%s: got URLError %s"%(self.name,ve))
+              Debug().p("%s: got URLError %s on ip:%s"%(self.name,ve,ip))
               continue
         offset = random.randint(Specs().s['minChange'],Specs().s['maxChange'])
         stime = time.time() + offset
         #Debug().p("next change: %d"%offset)
         n = pygame.mixer.get_busy()
-        #Debug().p("number busy channels %d"%n)
-      time.sleep(1)
+        #Debug().p("number busy channels %d"%n
       if SoundFile().testBumpCollection() is False:
         print "waiting for channels to be done"
         n = -1
         while n != 0:
           n = pygame.mixer.get_busy()
           print "number busy channels",n
-          time.sleep(1)
+          if self.checkStop():
+            return
         if loop:
           SoundFile().reset()
         else:
           self.SetRunning(false)
-          
-    print ("%s done"%self.name)
-    for t in SoundTrackManager().eventThreads:
-      t.stop()
-    self.done = True
+    self.doExit()     
+    

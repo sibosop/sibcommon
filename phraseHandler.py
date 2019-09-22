@@ -16,6 +16,7 @@ from server import Server
 from singleton import Singleton
 from debug import Debug
 
+
 class PhraseHandler(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self):
@@ -29,6 +30,7 @@ class PhraseHandler(threading.Thread):
     self.queue = Queue.Queue()
     if Hosts().getLocalAttr("hasServer"):
       Server().register({'Phrase' : self.setPhrase})
+    
 
   def setPhrase(self,args):
     Debug().p("%s setting phrase to %s"%(self.name,args['phrase']))
@@ -42,14 +44,18 @@ class PhraseHandler(threading.Thread):
       Debug().p("%s displaying f:%s"%(self.name,splash))
       Display().image(splash)
     while True:
-      Watchdog().feed(self)
+      if Watchdog().isAlive():
+        Watchdog().feed(self)
       p = self.queue.get()
-      if type(p) == 'str' and p == "__stop__":
-        print("%s stopping"%p.name)
+      if type(p) is str and p == "__stop__":
+        print("%s stopping"%self.name)
         break
       Debug().p("%s Displaying Phrase %s"%(self.name,p['phrase']))
       if self.hasDisplay and self.displayType == "Phrase":
         Display().text(p['phrase'])
       if self.hasVoice:
-        Voice().sendPhrase(p)
+        if Voice().isAlive():
+          Voice().sendPhrase(p)
+        else:
+          print("%s: %s is dead"%(self.name,Voice().name))
 

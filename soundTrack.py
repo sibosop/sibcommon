@@ -156,9 +156,9 @@ class SoundTrack(threading.Thread):
     return rval
 
   def stop(self):
-    self.runMutex.acquire()
-    self.runState = False
-    self.runMutex.release()
+    self.queue.put("__stop__")
+    while self.isAlive():
+      pass
     
     
   def run(self):
@@ -169,8 +169,8 @@ class SoundTrack(threading.Thread):
       Debug().p("%s: timeout %s"%(self.name,ts))
       try:
         test = self.queue.get(timeout=ts)
-        if type(test) == 'str':
-          print("%s stopping"%p.name)
+        if type(test) is str:
+          print("%s stopping"%self.name)
           break
       except Queue.Empty:
         test = cs
@@ -203,5 +203,5 @@ class SoundTrack(threading.Thread):
       ts = random.randint(Specs().s['eventMin'],Specs().s['eventMax'])/1000.0;
       
       
-    print("schlub thread " + self.name + " exiting")
+    print("%s exiting"%self.name)
     

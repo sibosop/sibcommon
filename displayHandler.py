@@ -18,6 +18,7 @@ from utils import mkpath
 from singleton import Singleton
 from server import Server
 from display import Display
+
 class DisplayHandler(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self):
@@ -34,6 +35,7 @@ class DisplayHandler(threading.Thread):
         ,'SetImageDir' : self.setImageDir
         ,'ClearCache' : self.clearCache
       })
+      
     
   def setImageDir(self,args):
     rval = "ok"
@@ -114,7 +116,8 @@ class DisplayHandler(threading.Thread):
       except Queue.Empty:
         path = lastImageDir
         
-      if path == "__Stop__":
+      if path == "__stop__":
+        print("%s is stopping"%self.name)
         break
         
       print("%s: path %s lastImageDir %s"%(self.name,path,lastImageDir))

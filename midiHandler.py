@@ -10,6 +10,7 @@ import mido
 import threading
 import Queue
 
+
 class Event(object):
   def __init__(self):
     self.eventName = None
@@ -43,6 +44,8 @@ class MidiHandler(threading.Thread):
         self.controlMap.append(self.findEvent(i,desc['controls']))
         self.noteMap.append(self.findEvent(i,desc['notes']))
     self.queue = Queue.Queue()
+    
+    
         
     self.rtMap = {
       'clock' : self.nop

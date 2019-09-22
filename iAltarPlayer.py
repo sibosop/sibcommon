@@ -29,11 +29,12 @@ from debug import Debug
 from server import Server
 import Queue
 
+
 class iAltar(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self):
     super(iAltar,self).__init__()
-    self.name = "iAltar"
+    self.name = "iAltarPlayer"
     print("starting: %s"%self.name)
     self.searchType = Specs().s['defaultSearchType'];
     print("%s: default search type: %s"%(self.name,self.searchType))
@@ -41,6 +42,8 @@ class iAltar(threading.Thread):
     if Hosts().getLocalAttr("hasServer"):
         Server().register({'Search' : self.setSearchType})
     self.queue = Queue.Queue()
+    
+    
     
   def setSearchType(self,t):
     self.searchType = t[0]
@@ -102,111 +105,108 @@ class iAltar(threading.Thread):
         if Hosts().getAttr(ip,'hasPhrase'):
           Debug().p("%s: wants phrase for %s: "%(self.name,ip))
           phraseHosts.append(ip)
-
+    sleepTime = .001      
     while True:
       try:
-        try:
-          msg = self.queue.get_nowait()
-          if msg == "__stop__"
-            print("%s: stopping"%self.name)
-          break
-        except Queue.Empty:
-          pass
-        
-        Watchdog().feed(self)
-        cacheId = random.randint(10000,20000)
-        images=[]
-        choices=[]
-        urls=[]
-        if  self.searchType == 'Archive':
-          [images,choices] = Archive().getArchive()
-          for i in images:
-            Debug().p("%s: image %s"%(self.name,i))
-          for c in choices:
-            Debug().p("%s: choice %s"%(self.name,c))
-        elif self.searchType == 'Google':
-          choices = Words().getWords()
-          urls = Search().getUrls(choices)
-          if urls == None:
-            Debug().p("%s Google Error switching to Archive"%self.name)
-            self.searchType = "Archive"
-            continue
-          if len(urls) == 0:
-            Debug().p("%s Nothing found try again"%self.name)
-            continue
-          images = self.urlsToImages(Search().getUrls(choices));
-        else:
-          Debug().p("%s unimplemented type %s switching to archive"%(self.name,searchType))
-          self.searchType = 'Archive'
-        if self.searchType != 'Archive':
-          Archive().putArchive(choices)
-
-        phraseArgs = {}
-        if len(phraseHosts) != 0:
-          phraseArgs['phrase'] = choices
-          Debug().p("%s sending %s to %s"%(self.name,choices,ip))
-          lang = random.choice(Specs().s['langList'])
-          file=textSpeaker.makeSpeakFile("%s %s"%(choices[0],choices[1]),lang)
-          with open(file,"rb") as sf:
-            phraseArgs['phraseData'] = base64.b64encode(sf.read())
-          os.unlink(file)
-          #os.unlink(file.replace("mp3","wav"));
-      
-
-        if len(imageHosts) != 0:
-          numImages = len(images)
-          imagesPerHost = numImages/len(imageHosts)
-          extraImages = numImages % len(imageHosts)
-          extra = 0
-          count = 0
-          Debug().p(
-                "%s numImages:%d imagesPerHost:%d extraImages:%d"
-                %(self.name,numImages,imagesPerHost,extraImages))
-          for ip in imageHosts:
-            args = {}
-            args['id'] = cacheId
-            args['imgData'] = []
-            for i in range(0,imagesPerHost):
-              fname = images[i+count]
-              args['imgData'].append(self.setImgData(fname))
-            count += imagesPerHost
-            if extra < extraImages:
-              fname = images[count+extra]
-              args['imgData'].append(self.setImgData(fname))
-              extra += 1
-            cmd = {'cmd' : "AddImage", 'args' : args}
-            if Hosts().isLocalHost(ip):
-              DisplayHandler().addImage(args)
-            else:
-              Hosts().sendToHost(ip,cmd)
-
-
-          for ip in imageHosts:
-            args =[cacheId]
-            if Hosts().isLocalHost(ip):
-              DisplayHandler().setImageDir(args)
-            else:
-              Hosts().sendToHost(ip,{'cmd' : 'SetImageDir' , 'args' : args});
-
-          if lastCacheId != 0:
-            for ip in imageHosts:
-              args =[lastCacheId]
-              if Hosts().isLocalHost(ip):
-                DisplayHandler.rmCacheDir(args)
-              else:
-                Hosts().sendToHost(ip,{'cmd' : 'RmCacheDir' , 'args' : args});
-          lastCacheId = cacheId
-
-        if len(phraseHosts) != 0:
-          for ip in phraseHosts:
-            if Hosts().isLocalHost(ip):
-              PhraseHandler().setPhrase(phraseArgs)
-            else:
-              Hosts().sendToHost(ip,{'cmd' : 'Phrase' , 'args' : phraseArgs});
-      
-        sleepTime = Specs().s['iAltarSleepInterval']  
         Debug().p("%s: sleeping %d"%(self.name,sleepTime))
-        time.sleep(sleepTime)
-      except BadStatusLine, e:
-        print("%s got bad status line. continuing"%self.name)
+        msg = self.queue.get(timeout=sleepTime)
+        if msg == "__stop__":
+          print("%s: stopping"%self.name)
+        break
+      except Queue.Empty:
+        pass
+      
+      Watchdog().feed(self)
+      cacheId = random.randint(10000,20000)
+      images=[]
+      choices=[]
+      urls=[]
+      if  self.searchType == 'Archive':
+        [images,choices] = Archive().getArchive()
+        for i in images:
+          Debug().p("%s: image %s"%(self.name,i))
+        for c in choices:
+          Debug().p("%s: choice %s"%(self.name,c))
+      elif self.searchType == 'Google':
+        choices = Words().getWords()
+        urls = Search().getUrls(choices)
+        if urls == None:
+          Debug().p("%s Google Error switching to Archive"%self.name)
+          self.searchType = "Archive"
+          continue
+        if len(urls) == 0:
+          Debug().p("%s Nothing found try again"%self.name)
+          continue
+        images = self.urlsToImages(Search().getUrls(choices));
+      else:
+        Debug().p("%s unimplemented type %s switching to archive"%(self.name,searchType))
+        self.searchType = 'Archive'
+      if self.searchType != 'Archive':
+        Archive().putArchive(choices)
+
+      phraseArgs = {}
+      if len(phraseHosts) != 0:
+        phraseArgs['phrase'] = choices
+        Debug().p("%s sending %s to %s"%(self.name,choices,ip))
+        lang = random.choice(Specs().s['langList'])
+        file=textSpeaker.makeSpeakFile("%s %s"%(choices[0],choices[1]),lang)
+        with open(file,"rb") as sf:
+          phraseArgs['phraseData'] = base64.b64encode(sf.read())
+        os.unlink(file)
+        #os.unlink(file.replace("mp3","wav"));
+    
+
+      if len(imageHosts) != 0:
+        numImages = len(images)
+        imagesPerHost = numImages/len(imageHosts)
+        extraImages = numImages % len(imageHosts)
+        extra = 0
+        count = 0
+        Debug().p(
+              "%s numImages:%d imagesPerHost:%d extraImages:%d"
+              %(self.name,numImages,imagesPerHost,extraImages))
+        for ip in imageHosts:
+          args = {}
+          args['id'] = cacheId
+          args['imgData'] = []
+          for i in range(0,imagesPerHost):
+            fname = images[i+count]
+            args['imgData'].append(self.setImgData(fname))
+          count += imagesPerHost
+          if extra < extraImages:
+            fname = images[count+extra]
+            args['imgData'].append(self.setImgData(fname))
+            extra += 1
+          cmd = {'cmd' : "AddImage", 'args' : args}
+          if Hosts().isLocalHost(ip):
+            DisplayHandler().addImage(args)
+          else:
+            Hosts().sendToHost(ip,cmd)
+
+
+        for ip in imageHosts:
+          args =[cacheId]
+          if Hosts().isLocalHost(ip):
+            DisplayHandler().setImageDir(args)
+          else:
+            Hosts().sendToHost(ip,{'cmd' : 'SetImageDir' , 'args' : args});
+
+        if lastCacheId != 0:
+          for ip in imageHosts:
+            args =[lastCacheId]
+            if Hosts().isLocalHost(ip):
+              DisplayHandler.rmCacheDir(args)
+            else:
+              Hosts().sendToHost(ip,{'cmd' : 'RmCacheDir' , 'args' : args});
+        lastCacheId = cacheId
+
+      if len(phraseHosts) != 0:
+        for ip in phraseHosts:
+          if Hosts().isLocalHost(ip):
+            PhraseHandler().setPhrase(phraseArgs)
+          else:
+            Hosts().sendToHost(ip,{'cmd' : 'Phrase' , 'args' : phraseArgs});
+    
+      sleepTime = Specs().s['iAltarSleepInterval']  
+    
     
