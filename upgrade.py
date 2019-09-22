@@ -18,6 +18,7 @@ def upgrade():
     output = check_output(cmd)
     print("upgrade: %s"%(output))
     cmd = ['git','-C','speclib','pull','origin','master']
+    print("upgrade: %s"%(cmd))
     output = check_output(cmd)
     print("upgrade: %s"%(output))
   except Exception, e:
