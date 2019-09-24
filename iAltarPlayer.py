@@ -93,7 +93,7 @@ class iAltar(threading.Thread):
     lastCacheId = 0
     for h in hosts:
       ip = h['ip']
-      if Hosts.isLocalHost(ip):
+      if Hosts().isLocalHost(ip):
         DisplayHandler.clearCache(None)
       else:
         Hosts().sendToHost(ip,{'cmd' : 'ClearCache' , 'args' : None});

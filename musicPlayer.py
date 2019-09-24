@@ -80,7 +80,7 @@ class MusicPlayer(threading.Thread):
           t.setCurrentSound(choice)
         for h in Hosts().getHosts():
           ip = h['ip']
-          if Hosts.isLocalHost(ip):
+          if Hosts().isLocalHost(ip):
             Debug().p("%s: ignoring %s"%(self.name,ip))
             continue
           if h['hasMusic']:

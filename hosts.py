@@ -12,6 +12,8 @@ import urllib2
 from singleton import Singleton
 from specs import Specs
 from debug import Debug
+from netifaces import interfaces, ifaddresses, AF_INET
+
 
 class Hosts(object):
   __metaclass__ = Singleton
@@ -27,12 +29,17 @@ class Hosts(object):
       for k in h.keys():
         host[k] = h[k]
       self.hosts.append(host)
+    self.localHost = None
     self.findLocalHost()
     
       
   def findLocalHost(self):
     self.localHost = None
-    ipList = subprocess.check_output(["hostname","-I"]).split()
+    #ipList = subprocess.check_output(["hostname","-I"]).split()
+    ipList = []
+    for interface in interfaces():
+        for link in ifaddresses(interface)[AF_INET]:
+            ipList.append(link['addr'])
     for ip in ipList:
       for h in self.hosts:
         if h['ip'] == ip:
@@ -130,19 +137,8 @@ class Hosts(object):
       rval = jsonStatus("408")
     return rval
       
-  @staticmethod
-  def isLocalHost(ip):
-    plats=platform.platform().split('-');
-    if plats[0] == 'Darwin':
-      return False
-    myIp = subprocess.check_output(["hostname","-I"]).split()
-    for i in myIp:
-      Debug().p("isLocalHost: ip: %s myIp %s"%(ip,i))
-      if i == ip:
-        Debug().p("isLocalHost is True: %s"%ip)
-        return True
-    Debug().p("isLocalHost is False: %s"%ip)
-    return False
+  def isLocalHost(self,ip):
+    return self.localHost == ip
 
   def getLocalHost(self):
     return self.localHost
