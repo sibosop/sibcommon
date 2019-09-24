@@ -39,7 +39,7 @@ class Hosts(object):
     ipList = []
     for interface in interfaces():
           for i in ifaddresses(interface):
-            print(i)
+            Debug().p("interface type %d"%i)
             for link in ifaddresses(interface)[i]:
               ipList.append(link['addr'])
     for ip in ipList:
