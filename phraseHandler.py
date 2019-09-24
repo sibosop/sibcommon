@@ -15,6 +15,7 @@ from voice import Voice
 from server import Server
 from singleton import Singleton
 from debug import Debug
+from panel import Panel
 
 
 class PhraseHandler(threading.Thread):
@@ -27,6 +28,7 @@ class PhraseHandler(threading.Thread):
     self.hasDisplay = Hosts().getLocalAttr("hasDisplay")
     self.displayType = Hosts().getLocalAttr("displayType")
     self.hasVoice = Hosts().getLocalAttr("hasVoice")
+    self.hasPanel = Hosts().getLocalAttr("hasPanel")
     self.queue = Queue.Queue()
     if Hosts().getLocalAttr("hasServer"):
       Server().register({'Phrase' : self.setPhrase})
@@ -40,7 +42,7 @@ class PhraseHandler(threading.Thread):
   def run(self):
     print "%s starting"%self.name
     splash = Specs().s['splashImg']
-    if self.hasDisplay:
+    if self.hasDisplay and self.displayType == "Phrase":
       Debug().p("%s displaying f:%s"%(self.name,splash))
       Display().image(splash)
     while True:
@@ -58,4 +60,7 @@ class PhraseHandler(threading.Thread):
           Voice().sendPhrase(p)
         else:
           print("%s: %s is dead"%(self.name,Voice().name))
+      if self.hasPanel:
+        Panel().printText(p['phrase'])
+
 
