@@ -38,10 +38,13 @@ class Hosts(object):
     #ipList = subprocess.check_output(["hostname","-I"]).split()
     ipList = []
     for interface in interfaces():
-        for link in ifaddresses(interface)[AF_INET]:
-            ipList.append(link['addr'])
+          for i in ifaddresses(interface):
+            print(i)
+            for link in ifaddresses(interface)[i]:
+              ipList.append(link['addr'])
     for ip in ipList:
       for h in self.hosts:
+        Debug().p("checking ip %s against %s"%(h['ip'],ip))
         if h['ip'] == ip:
           Debug().p("found local host: %s"%ip)
           self.localHost = ip
@@ -160,3 +163,10 @@ class Hosts(object):
     Debug().p("Get Local Attr %s: %s"%(a,rval))
     return rval
 
+if __name__ == '__main__':
+    os.environ['DISPLAY']=":0.0"
+    os.chdir(os.path.dirname(sys.argv[0]))
+    os.chdir("..") # sigh: get to default app path
+    Debug(["__main__"])
+    Specs("%s/%s"%("speclib","piano.json"))
+    print(Hosts().isLocalHost("none"))
