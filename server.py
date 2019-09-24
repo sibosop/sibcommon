@@ -56,8 +56,7 @@ class Server(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self,port):
     super(Server,self).__init__()
-    host = subprocess.check_output(["hostname","-I"]).split();
-    self.host = host[0]
+    self.host = Hosts().getLocalHost()
     self.port = port
     self.name = "ServerThread: %s:%d"%(self.host,port)
     print("%s"%(self.name))
