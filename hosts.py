@@ -84,7 +84,9 @@ class Hosts(object):
       test = f.read()
       Debug().p("got response: %s"%test)
     except urllib2.URLError, e:
-        Debug().p("ip %s:%s"%(ip,e))
+      print("ip %s:%s"%(ip,e))
+    except Exception,e:
+      print("ip %s:%s"%(ip,e))
       
 
   def sendWithSubnet(self,ip,cmd):
