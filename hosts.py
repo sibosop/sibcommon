@@ -27,7 +27,19 @@ class Hosts(object):
       for k in h.keys():
         host[k] = h[k]
       self.hosts.append(host)
+    self.findLocalHost()
+    
       
+  def findLocalHost(self):
+    self.localHost = None
+    ipList = subprocess.check_output(["hostname","-I"]).split()
+    for ip in ipList:
+      for h in self.hosts:
+        if h['ip'] == ip:
+          Debug().p("found local host: %s"%ip)
+          self.localHost = ip
+          break;
+
   def getHosts(self):
     return self.hosts
   
@@ -130,15 +142,8 @@ class Hosts(object):
     Debug().p("isLocalHost is False: %s"%ip)
     return False
 
-  @staticmethod
-  def getLocalHost():
-    subnet = Specs().s['subnet']
-    ipList = subprocess.check_output(["hostname","-I"]).split()
-    for ip in ipList:
-      if subnet in ip:
-        Debug().p("local host: %s"%ip)
-        return ip
-    return None
+  def getLocalHost(self):
+    return self.localHost
   
   def getHost(self,ip):
     for h in self.hosts:
@@ -153,7 +158,7 @@ class Hosts(object):
     return rval 
   
   def getLocalAttr(self,a):
-    rval = self.getHost(Hosts.getLocalHost())[a]
+    rval = self.getHost(self.getLocalHost())[a]
     Debug().p("Get Local Attr %s: %s"%(a,rval))
     return rval
 

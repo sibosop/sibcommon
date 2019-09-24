@@ -81,7 +81,7 @@ class Server(threading.Thread):
   def doProbe(args):
     state = {}
     state['status'] = "ok"
-    attr = Hosts().getHost(Hosts.getLocalHost())
+    attr = Hosts().getHost(Hosts().getLocalHost())
     for k in attr.keys():
       state[k]=attr[k]
     return json.dumps(state)

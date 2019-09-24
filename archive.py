@@ -21,6 +21,7 @@ class Archive(object):
   def reset(self):
     self.cache = mkpath("%s/archiveCache"%(Specs().s['tmpdir']))
     self.adir=Specs().s["archiveDir"]
+    Debug().p("archive dir %s"%self.adir)
     self.archives = []
     for a in glob.glob(self.adir+"/*.tgz"):
       #Debug().p("a: %s"%a)
