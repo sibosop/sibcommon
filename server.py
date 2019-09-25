@@ -63,15 +63,21 @@ class Server(threading.Thread):
     self.server = ThreadedHTTPServer((self.host, self.port), MyHandler)
 
     self.commandTable = {
-      'Upgrade' : Server.doUpgrade
-      ,'Poweroff' : Server.doPoweroff
-      ,'Reboot' : Server.doReboot
+      'Poweroff' : Server.doPoweroff
       ,'Probe' : Server.doProbe
+      ,'Reboot' : Server.doReboot
+      ,'Stop' : Server.doStop
+      ,'Upgrade' : Server.doUpgrade
     }
+
+  @staticmethod
+  def doStop(args):
+    return Hosts().jsonStatus("stop");
+  
     
   @staticmethod
   def doExit(num):
-    print "Doing Exit with %d"%num
+    print ("Doing Exit with %d"%num)
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(num)

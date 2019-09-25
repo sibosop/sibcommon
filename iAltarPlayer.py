@@ -148,11 +148,19 @@ class iAltar(threading.Thread):
       if len(phraseHosts) != 0:
         phraseArgs['phrase'] = choices
         Debug().p("%s sending %s to %s"%(self.name,choices,ip))
-        lang = random.choice(Specs().s['langList'])
-        file=textSpeaker.makeSpeakFile("%s %s"%(choices[0],choices[1]),lang)
-        with open(file,"rb") as sf:
-          phraseArgs['phraseData'] = base64.b64encode(sf.read())
-        os.unlink(file)
+        for h in phraseHosts:
+          if Hosts().getAttr(h,'hasVoice'):
+            try:
+              lang = random.choice(Specs().s['langList'])
+              file=textSpeaker.makeSpeakFile("%s %s"%(choices[0],choices[1]),lang)
+              if file is None:
+                print("Make Speak File error, skipping")
+              else:
+                with open(file,"rb") as sf:
+                  phraseArgs['phraseData'] = base64.b64encode(sf.read())
+                os.unlink(file)
+            except Exception, e:
+              print("getting voice data error: %s"%s)
         #os.unlink(file.replace("mp3","wav"));
     
 
