@@ -79,6 +79,9 @@ class Hosts(object):
         
   def sendToHost(self,ip,cmd):
     rval = True
+    if not self.getAttr(ip,"hasServer"):
+      print("sendToHost skipping %s: it is not a server"%ip)
+      return
     try:
       Debug().p("cmd %s"%cmd['cmd'])
       timeout = self.timeout
