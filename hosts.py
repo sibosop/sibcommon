@@ -32,7 +32,6 @@ class Hosts(object):
     self.localHost = None
     self.findLocalHost()
     
-      
   def findLocalHost(self):
     self.localHost = None
     #ipList = subprocess.check_output(["hostname","-I"]).split()
