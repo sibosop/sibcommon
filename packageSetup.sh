@@ -20,6 +20,7 @@ sudo pip3 install pyalsaaudio
 sudo apt-get -y install python-pyaudio
 sudo -H pip install soupsieve
 sudo -H pip install netifaces
+sudo apt-get install libportmidi-dev libportmidi0
 
 
 
