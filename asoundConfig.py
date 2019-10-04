@@ -105,6 +105,7 @@ def makeRc():
 
 # amixer -c 2 cset numid=3,name='PCM Playback Volume' 100
 def setVolume(vol):
+  rval = "ok"
   if int(vol) >= 100 :
     vol = "100"
   hw=getHw()
@@ -132,6 +133,8 @@ def setVolume(vol):
   except CalledProcessError as e:
     traceback.print_exc()
     print(e.output)
+    rval = "sound config error"
+  return rval
 
 def getVolume():
   vol = 666

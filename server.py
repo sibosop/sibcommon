@@ -13,6 +13,7 @@ from hosts import Hosts
 from debug import Debug
 from singleton import Singleton
 import upgrade
+from asoundConfig import setVolume
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
@@ -68,7 +69,13 @@ class Server(threading.Thread):
       ,'Reboot' : Server.doReboot
       ,'Stop' : Server.doStop
       ,'Upgrade' : Server.doUpgrade
+      ,'Volume' : Server.setVolume
     }
+    
+  @staticmethod
+  def setVolume(args):
+    return Hosts().jsonStatus(setVolume(args['value']))
+    
 
   @staticmethod
   def doStop(args):
