@@ -97,6 +97,9 @@ class MusicPlayer(threading.Thread):
             except urllib2.URLError as ve:
               Debug().p("%s: got URLError %s on ip:%s"%(self.name,ve,ip))
               continue
+            except Exception as e:
+              print("%s got exception %s"%(self.name,e))
+              continue
         offset = random.randint(Specs().s['minChange'],Specs().s['maxChange'])
         stime = time.time() + offset
         #Debug().p("next change: %d"%offset)

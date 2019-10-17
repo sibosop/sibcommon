@@ -9,7 +9,7 @@ from specs import Specs
 import mido
 import threading
 import Queue
-
+from hosts import Hosts
 
 class Event(object):
   def __init__(self):
@@ -26,10 +26,12 @@ class Event(object):
     
 class MidiHandler(threading.Thread):
   __metaclass__ = Singleton
-  def __init__(self,mapperList):
+  def __init__(self):
     super(MidiHandler,self).__init__()
     spec = Specs().s
-    mido.set_backend(spec["midiBackEnd"])
+    hostSpec = Hosts().getLocalAttr('midi')
+    mapperList = hostSpec['devices']
+    mido.set_backend(hostSpec['backend'])
     self.controlMap = []
     self.noteMap = []
     self.inputs = []
@@ -37,9 +39,11 @@ class MidiHandler(threading.Thread):
     self.name = "MidiHandler"
     self.running = True
     for n in mapperList:
-      desc = spec[n]
-      self.inputs.append(mido.open_input(desc['inPort']))  
-      self.outputs.append(mido.open_output(desc['outPort']))
+      desc = spec[n['id']]
+      if n['inPort']:
+        self.inputs.append(mido.open_input(n['inPort']))
+      if  n['outPort']:
+        self.outputs.append(mido.open_output(n['outPort']))
       for i in range(0,128):
         self.controlMap.append(self.findEvent(i,desc['controls']))
         self.noteMap.append(self.findEvent(i,desc['notes']))
@@ -77,7 +81,8 @@ class MidiHandler(threading.Thread):
       else:
         max = min
       if num in range(min,max+1):
-        rval.event = k
+        Debug().p("found %s %d"%(k,num))
+        rval.eventName = k
         rval.num = num-min
         break
     return rval
@@ -105,13 +110,19 @@ class MidiHandler(threading.Thread):
     while self.running:
       try:
         msg = self.queue.get_nowait()
-        if msg = "__stop__":
+        if msg == "__stop__":
           break
       except Queue.Empty:
         pass
         
-      for msg in mido.ports.multi_receive(self.inputs):
-        self.rtMap[msg.type](msg)
+      #for msg in mido.ports.multi_receive(self.inputs):
+        #self.rtMap[msg.type](msg)
+      for i in self.inputs:
+        msg = i.poll()
+        if msg is not None:
+          self.rtMap[msg.type](msg)
+          
+          
   
       
     
