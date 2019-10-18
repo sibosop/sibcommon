@@ -25,16 +25,21 @@ class SoundFile(object):
   def reset(self):
     self.baseTime = time.time()
     self.collections = []
+    self.midiCollections = []
     self.currentCollection = ""
     self.timeout = 0
     self.rootDir = ""
     self.currentCollection = ""
-    for d in Specs().s['collections']:
-        self.collections.append(d)
-    Debug().p(self.collections)
-    self.currentCollection = self.collections.pop(0)
-    Debug().p("currentCollection: %s"%self.currentCollection['name'])
-    self.timeout = time.time() + self.currentCollection['time']
+    if 'collections' in Specs().s:
+      for d in Specs().s['collections']:
+          self.collections.append(d)
+      Debug().p(self.collections)
+      self.currentCollection = self.collections.pop(0)
+      Debug().p("currentCollection: %s"%self.currentCollection['name'])
+      self.timeout = time.time() + self.currentCollection['time']
+    if 'midiCollections' in Specs().s:
+      for d in Specs().s['midiCollections']:
+          self.midiCollections.append(d)
 
       
   def testBumpCollection(self):

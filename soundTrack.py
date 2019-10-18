@@ -44,16 +44,17 @@ class SoundTrackManager(object):
 
   def makeBuffers(self):
     Debug().p("%s: makeBuffers"%self.name)
-    for l in Specs().s['collections']:
-      Debug().p ("l: %s"%l)
-      for f in Specs().s[l['list']]:
-        Debug().p("f: %s"%f['name'])
-        if f['name'] in self.buffers:
-          Debug().p("%s: skipping existing fname %s"%(self.name,f['name']))
-        else:
-          path = self.rootDir + '/' + f['name']
-          buffer = pygame.mixer.Sound(file=path)
-          self.buffers[f['name']] = buffer
+    for c in ['collections','midiCollections']:
+      for l in Specs().s[c]:
+        Debug().p ("c: %s l: %s"%(c,l))
+        for f in Specs().s[l['list']]:
+          Debug().p("f: %s"%f['name'])
+          if f['name'] in self.buffers:
+            Debug().p("%s: skipping existing fname %s"%(self.name,f['name']))
+          else:
+            path = self.rootDir + '/' + f['name']
+            buffer = pygame.mixer.Sound(file=path)
+            self.buffers[f['name']] = buffer
           
           
   
