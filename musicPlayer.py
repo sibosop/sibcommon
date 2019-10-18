@@ -20,13 +20,15 @@ import Queue
 
 
 class MusicPlayer(threading.Thread):
-  def __init__(self):
+  def __init__(self,defaultCollection="playerCollection"):
     super(MusicPlayer,self).__init__()
     self.done = False
     self.name= "MusicPlayer"
     self.running = None
     self.mutex = threading.Lock()
     self.queue = Queue.Queue()
+    self.collection = defaultCollection
+    SoundFile().setCurrentCollection(self.collection)
     
     
   def stop(self):
@@ -114,7 +116,7 @@ class MusicPlayer(threading.Thread):
           if self.checkStop():
             return
         if loop:
-          SoundFile().reset()
+          SoundFile().setCurrentCollection(self.collection)
         else:
           self.SetRunning(false)
     self.doExit()     

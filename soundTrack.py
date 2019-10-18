@@ -44,7 +44,8 @@ class SoundTrackManager(object):
 
   def makeBuffers(self):
     Debug().p("%s: makeBuffers"%self.name)
-    for c in ['collections','midiCollections']:
+  
+    for c in Specs().s['collections']:
       for l in Specs().s[c]:
         Debug().p ("c: %s l: %s"%(c,l))
         for f in Specs().s[l['list']]:

@@ -20,49 +20,47 @@ class SoundFile(object):
   def __init__(self):
     self.listMutex=threading.Lock()
     self.maxEvents = 2
-    self.reset()
-    
-  def reset(self):
+    self.collections = {}
+    self.currentCollection = None
+    self.index = 0
+    for k in Specs().s['collections']:
+      self.collections[k] = []
+      for d in Specs().s[k]:
+        self.collections[k].append(d)
+        Debug().p("key: %s collection %s"%(k,d))
+  
+  def setCurrentCollection(self,k):
+    self.currentCollection = k
     self.baseTime = time.time()
-    self.collections = []
-    self.midiCollections = []
-    self.currentCollection = ""
     self.timeout = 0
     self.rootDir = ""
-    self.currentCollection = ""
-    if 'collections' in Specs().s:
-      for d in Specs().s['collections']:
-          self.collections.append(d)
-      Debug().p(self.collections)
-      self.currentCollection = self.collections.pop(0)
-      Debug().p("currentCollection: %s"%self.currentCollection['name'])
-      self.timeout = time.time() + self.currentCollection['time']
-    if 'midiCollections' in Specs().s:
-      for d in Specs().s['midiCollections']:
-          self.midiCollections.append(d)
-
+    self.index = 0;
+    self.timeout = self.collections[k][self.index]['time'] + time.time()
       
   def testBumpCollection(self):
     #Debug().p("testBumpCollection time %d timeout %d"%(time.time(),self.timeout))
-    if time.time() > self.timeout:
-      Debug().p("testBumpCollection timeout passed")
-      if len(self.collections) == 0:
-        Debug().p("testBumpCollection done")
-        return False
     
-      self.currentCollection = self.collections.pop(0)
-      Debug().p("new current collection %s"%self.currentCollection['name'])
-      self.timeout = time.time() + self.currentCollection['time']
+    if time.time() > self.timeout:
+      last = self.collections[self.currentCollection][self.index]
+      Debug().p("testBumpCollection timeout passed")
+      self.index += 1
+      if len(self.collections[self.currentCollection]) == self.index:
+        Debug().p("testBumpCollection for %s %s done"%(self.currentCollection,last))
+        return False
+      cur = self.collections[self.currentCollection][self.index]
+      Debug().p("new current collection %s"%cur['name'])
+      self.timeout = time.time() + cur['time']
       Debug().p("new timeout %d"%self.timeout)
     return True
   
   def getSoundEntry(self):
-    keys = Specs().s[self.currentCollection['list']]
-    Debug().p("collection-list %s - %s number of keys %d"%(self.currentCollection['name'],self.currentCollection['list'],len(keys)))
+    cur = self.collections[self.currentCollection][self.index]
+    keys = Specs().s[cur['list']]
+    Debug().p("collection-list %s - %s number of keys %d"%(cur['name'],cur['list'],len(keys)))
     done = False
     choices = 0
     numChoices = Specs().s['maxEvents']
-    Debug().p("collection: %s number of choices: %d max Events: %d"%(self.currentCollection['name'],self.maxEvents,numChoices))
+    Debug().p("collection: %s number of choices: %d max Events: %d"%(cur['name'],self.maxEvents,numChoices))
     rval = []
     while len(rval) < numChoices:
       choice = random.randint(0,len(keys)-1)
