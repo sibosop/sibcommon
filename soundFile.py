@@ -22,6 +22,10 @@ class SoundFile(object):
     self.maxEvents = 2
     self.collections = {}
     self.currentCollection = None
+    self.baseTime = time.time()
+    self.index = 0
+    self.timeout = 0
+    self.rootDir = ""
     self.index = 0
     for k in Specs().s['collections']:
       self.collections[k] = []
