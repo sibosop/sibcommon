@@ -22,7 +22,7 @@ class Event(object):
     Debug().p("default event callback %s"%event)
       
   def __str__(self):
-    return "event %s num %s value %s"%(self.eventName,self.num,self.value)
+    return "event %s num %s value %s callback %s"%(self.eventName,self.num,self.value,self.callback)
     
 class MidiHandler(threading.Thread):
   __metaclass__ = Singleton
@@ -64,11 +64,13 @@ class MidiHandler(threading.Thread):
     }
     
   def register(self,eventName,callback):
+    
     for e in self.controlMap:
       if e.eventName == eventName:
+        Debug().p("register %s to %s"%(eventName,callback))
         e.callback = callback
-        return
-    for e in self.NoteMap:
+        
+    for e in self.noteMap:
       if e.eventName == eventName:
         e.callback = callback
             
@@ -90,6 +92,7 @@ class MidiHandler(threading.Thread):
   
   def control_change(self,msg):
     ev = self.controlMap[msg.control]
+    #Debug().p("%s got %s ev %s"%(self.name,msg,ev))
     ev.value = msg.value
     ev.callback(ev)
       
