@@ -37,7 +37,7 @@ class MusicPlayer(threading.Thread):
     
     
   def stop(self):
-    print_dbg("%s: stop request"%self.name)
+    Debug().p("%s: stop request"%self.name)
     self.setRunning(False)
     
   def haltMusic(self,cmd):
