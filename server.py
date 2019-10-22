@@ -50,6 +50,8 @@ class MyHandler(BaseHTTPRequestHandler):
       Server.doExit(4)
     if s['status'] == "stop":
       Server.doExit(5)
+    if s['status'] == "restart":
+      Server.doExit(6)
     return
 
 
@@ -67,6 +69,7 @@ class Server(threading.Thread):
       'Poweroff' : Server.doPoweroff
       ,'Probe' : Server.doProbe
       ,'Reboot' : Server.doReboot
+      ,'Restart' : Server.doRestart
       ,'Stop' : Server.doStop
       ,'Upgrade' : Server.doUpgrade
       ,'Volume' : Server.setVolume
@@ -80,6 +83,10 @@ class Server(threading.Thread):
   @staticmethod
   def doStop(args):
     return Hosts().jsonStatus("stop");
+
+  @staticmethod
+  def doRestart(args):
+    return Hosts().jsonStatus("restart");
   
     
   @staticmethod
