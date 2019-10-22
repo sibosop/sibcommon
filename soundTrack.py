@@ -27,7 +27,10 @@ class SoundTrackManager(object):
     self.eventThreads=[]
     self.makeBuffers()
     if Hosts().getLocalAttr("hasServer"):
-      Server().register({"Sound" : self.doSound})
+      Server().register(  {"Sound" : self.doSound
+                          ,"HaltSound" : self.doHalt
+                        })
+      
     
     self.changeNumSoundThreads(Specs().s['numMusicThreads'])
     self.tunings = {}
@@ -41,7 +44,12 @@ class SoundTrackManager(object):
     for t in self.eventThreads:
       t.setCurrentSound(cmd)
       return Hosts.jsonStatus(str(cmd))
-
+  
+  def doHalt(self,cmd):
+    for t in self.eventThreads:
+      t.halt()
+      return Hosts.jsonStatus(str(cmd))
+      
   def makeBuffers(self):
     Debug().p("%s: makeBuffers"%self.name)
   
@@ -162,6 +170,9 @@ class SoundTrack(threading.Thread):
     while self.isAlive():
       pass
     
+  def halt(self):
+    self.queue.put("__halt__")  
+  
     
   def run(self):
     print("%s starting"%self.name)
@@ -172,8 +183,13 @@ class SoundTrack(threading.Thread):
       try:
         test = self.queue.get(timeout=ts)
         if type(test) is str:
-          print("%s stopping"%self.name)
-          break
+          if test == "__stop__":
+            print("%s stopping"%self.name)
+            break
+          if test == "__halt__":
+            Debug().p("%s: halting"%self.name)
+            ts = None
+            continue
       except Queue.Empty:
         test = cs
       cs = test
