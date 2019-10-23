@@ -5,6 +5,8 @@ from debug import Debug
 from singleton import Singleton
 from hosts import Hosts
 from midiHandler import MidiHandler
+from utils import doStartMusic
+from utils import doHaltMusic
 
 
 class NanoPlayer(object):
@@ -40,9 +42,14 @@ class NanoPlayer(object):
     return
   def doStart(self,msg):
     Debug().p("%s Start %s"%(self.name,msg))
+    if msg.value != 0:
+      doStartMusic({'cmd' : 'StartMusic'})
     return
+    
   def doStop(self,msg):
     Debug().p("%s Stop %s"%(self.name,msg))
+    if msg.value != 0:
+      doHaltMusic({'cmd' : 'HaltMusic'})
     return
   def doBegin(self,msg):
     Debug().p("%s Begin %s"%(self.name,msg))
