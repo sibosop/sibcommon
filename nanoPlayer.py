@@ -7,7 +7,14 @@ from hosts import Hosts
 from midiHandler import MidiHandler
 from utils import doStartMusic
 from utils import doHaltMusic
+from utils import doHaltSound
+from utils import doMute
 
+class ControlBlock(object):
+  def __init__(self,ip):
+    self.ip = ip
+    self.slider = 0
+    self.pot = 0
 
 class NanoPlayer(object):
   __metaclass__ = Singleton
@@ -30,16 +37,26 @@ class NanoPlayer(object):
     mh.register("prevMark", self.doPrevMark)
     mh.register("nextMark", self.doNextMark)
     mh.register("recordSelect", self.doRecordSelect)
+    self.controlBlocks = [-1] * 8
+    self.playerIps = []
+    for h in Hosts().getHosts():
+      if h['nanoId'] != -1:
+        self.controlBlocks[h['nanoId']] = ControlBlock(h['ip'])
+        Debug().p("%s added nano id %d for host %s"%(self.name,h['nanoId'],h['ip']))
+      if h['hasMusicPlayer']:
+        Debug().p("%s added added music player host %s"%(self.name,h['ip']))
+        self.playerIps.append(h['ip'])
     
   def doSlider(self,msg):
     Debug().p("%s slider %s"%(self.name,msg))
+    self.controlBlocks[msg.num].slider = msg.value
     return
   def doPot(self,msg):
     Debug().p("%s Pot %s"%(self.name,msg))
+    self.controlBlocks[msg.num].pot = msg.value
     return
-  def doSolo(self,msg):
-    Debug().p("%s Solo %s"%(self.name,msg))
-    return
+  
+    
   def doStart(self,msg):
     Debug().p("%s Start %s"%(self.name,msg))
     if msg.value != 0:
@@ -51,6 +68,7 @@ class NanoPlayer(object):
     if msg.value != 0:
       doHaltMusic({'cmd' : 'HaltMusic'})
     return
+    
   def doBegin(self,msg):
     Debug().p("%s Begin %s"%(self.name,msg))
     return
@@ -63,8 +81,18 @@ class NanoPlayer(object):
   def doCycle(self,msg):
     Debug().p("%s Cycle %s"%(self.name,msg))
     return
+  def doSolo(self,msg):
+    Debug().p("%s Solo %s"%(self.name,msg))
+    cb = self.controlBlocks[msg.num]
+    for ip in self.playerIps:
+      doMute(ip,cb.ip,False)
+    return
+    
   def doMute(self,msg):
     Debug().p("%s Mute %s"%(self.name,msg))
+    cb = self.controlBlocks[msg.num]
+    for ip in self.playerIps:
+      doMute(ip,cb.ip,True)
     return
   def doPrevTrack(self,msg):
     Debug().p("%s PrevTrack %s"%(self.name,msg))

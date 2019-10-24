@@ -30,6 +30,10 @@ def doHaltMusic(cmd):
     if h['hasMusic']:
       Hosts().sendToHost(h['ip'],hscmd)
   return 0
+  
+def doHaltSound(ip):
+  hscmd = { 'cmd' : 'HaltSound', 'args' : [""] }
+  Hosts().sendToHost(h['ip'],hscmd)
 
 def doStartMusic(cmd):
   smcmd = { 'cmd' : 'StartMusic', 'args' : [""] }
@@ -38,3 +42,9 @@ def doStartMusic(cmd):
     if h['hasMusicPlayer']:
       Hosts().sendToHost(h['ip'],smcmd)
   return 0
+
+def doMute(pip,mip,flag):
+  mcmd = { 'cmd' : 'Mute', 'args' : {'ip' : mip, 'mute' : flag } }
+  Hosts().sendToHost(pip,mcmd)
+  hscmd = { 'cmd' : 'HaltSound', 'args' : [""] }
+  Hosts().sendToHost(mip,hscmd)

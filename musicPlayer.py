@@ -19,6 +19,9 @@ from hosts import Hosts
 from server import Server
 import Queue
 
+class MusicBlock(object):
+  def __init__(self):
+    self.mute = False
 
 class MusicPlayer(threading.Thread):
   def __init__(self,defaultCollection="playerCollection"):
@@ -30,15 +33,26 @@ class MusicPlayer(threading.Thread):
     self.queue = Queue.Queue()
     self.collection = defaultCollection
     self.waitTime = 0.1
+    self.musicBlocks = {}
+    for h in Hosts().getHosts():
+      if h['hasMusic']:
+        self.musicBlocks[h['ip']] = MusicBlock()
+        
     SoundFile().setCurrentCollection(self.collection)
     if Hosts().getLocalAttr("hasServer"):
-      Server().register(  {"HaltMusic" : self.haltMusic
-                          ,"StartMusic" : self.startMusic})
+      Server().register({"HaltMusic" : self.haltMusic
+                          ,"StartMusic" : self.startMusic
+                          ,"Mute" : self.mute 
+                        }) 
     
     
   def stop(self):
     Debug().p("%s: stop request"%self.name)
     self.setRunning(False)
+    
+  def mute(self,args):
+    self.musicBlocks[args['ip']].mute = args['mute']
+    return Hosts.jsonStatus(str(args))
     
   def haltMusic(self,cmd):
     self.queue.put("__halt__")
@@ -97,35 +111,35 @@ class MusicPlayer(threading.Thread):
         choice = random.choice(entry)
         Debug().p("sending  %s request to %s"%(choice,t.name))
         t.setCurrentSound(choice)
-      for h in Hosts().getHosts():
-        ip = h['ip']
+      for ip in self.musicBlocks.keys():
         if Hosts().isLocalHost(ip):
           Debug().p("%s: ignoring %s"%(self.name,ip))
           continue
-        if h['hasMusic']:
-          try:
-            url = "http://"+ip+":8080"
-            Debug().p("%s: url: %s"%(self.name,url))
-            cmd = { 'cmd' : "Sound" ,'args' : choice }
-            req = urllib2.Request(url
-                    ,json.dumps(cmd),{'Content-Type': 'application/json'})
-            timeout = 1
-            f = urllib2.urlopen(req,None,timeout)
-            test = f.read()
-            Debug().p("%s: got response:%s"%(self.name,test))
-          except urllib2.URLError as ve:
-            Debug().p("%s: got URLError %s on ip:%s"%(self.name,ve,ip))
-            continue
-          except Exception as e:
-            print("%s got exception %s"%(self.name,e))
-            continue
+        if self.musicBlocks[ip].mute:
+          Debug().p("%s: ignoring muted %s %s"%(self.name,ip,self.musicBlocks[ip].mute))
+          continue
+        try:
+          url = "http://"+ip+":8080"
+          Debug().p("%s: url: %s"%(self.name,url))
+          cmd = { 'cmd' : "Sound" ,'args' : choice }
+          req = urllib2.Request(url
+                  ,json.dumps(cmd),{'Content-Type': 'application/json'})
+          timeout = 1
+          f = urllib2.urlopen(req,None,timeout)
+          test = f.read()
+          Debug().p("%s: got response:%s"%(self.name,test))
+        except urllib2.URLError as ve:
+          Debug().p("%s: got URLError %s on ip:%s"%(self.name,ve,ip))
+          continue
+        except Exception as e:
+          print("%s got exception %s"%(self.name,e))
+          continue
       self.waitTime = random.randint(Specs().s['minChange'],Specs().s['maxChange'])
       Debug().p("next change: %d"%self.waitTime)
-      n = pygame.mixer.get_busy()
       #Debug().p("number busy channels %d"%n
       if SoundFile().testBumpCollection() is False:
         print "waiting for channels to be done"
-        n = -1
+        n = pygame.mixer.get_busy()
         while n != 0:
           n = pygame.mixer.get_busy()
           print "number busy channels",n
