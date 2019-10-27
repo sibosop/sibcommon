@@ -48,3 +48,39 @@ def doMute(pip,mip,flag):
   Hosts().sendToHost(pip,mcmd)
   hscmd = { 'cmd' : 'HaltSound', 'args' : [""] }
   Hosts().sendToHost(mip,hscmd)
+  
+def sysex_to_data(sysex):
+  data = [None] * len(sysex)
+  cnt2 = 0
+  bits = 0
+  for cnt in range(0,len(sysex)):
+    if ((cnt % 8) == 0):
+      bits = sysex[cnt]
+    else:
+      data[cnt2] = sysex[cnt] | ((bits & 1) << 7)
+      cnt2 += 1
+      bits >>= 1
+  return data[0:cnt2]
+
+def data_to_sysex(data):
+  sysex = [0]
+  idx = 0
+  cnt7 = 0
+
+  for x in data:
+      c = x & 0x7F
+      msb = x >> 7
+      sysex[idx] |= msb << cnt7
+      sysex += [c]
+
+      if cnt7 == 6:
+          idx += 8
+          sysex += [0]
+          cnt7 = 0
+      else:
+          cnt7 += 1
+
+  if cnt7 == 0:
+      sysex.pop()
+      
+  return sysex

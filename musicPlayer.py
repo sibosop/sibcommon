@@ -107,10 +107,13 @@ class MusicPlayer(threading.Thread):
       entry = SoundFile().getSoundEntry()
       Debug().p("player choosing %s"%entry)
       count = 0
-      for t in SoundTrackManager().eventThreads:
-        choice = random.choice(entry)
-        Debug().p("sending  %s request to %s"%(choice,t.name))
-        t.setCurrentSound(choice)
+      if self.musicBlocks[Hosts().getLocalHost()].mute:
+        Debug().p("%s local %s mute so ignoring"%(self.name,Hosts().getLocalHost()))
+      else:
+        for t in SoundTrackManager().eventThreads:
+          choice = random.choice(entry)
+          Debug().p("sending  %s request to %s"%(choice,t.name))
+          t.setCurrentSound(choice)
       for ip in self.musicBlocks.keys():
         if Hosts().isLocalHost(ip):
           Debug().p("%s: ignoring %s"%(self.name,ip))

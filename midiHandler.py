@@ -10,106 +10,61 @@ import mido
 import threading
 import Queue
 from hosts import Hosts
+#
 
-class Event(object):
-  def __init__(self):
-    self.eventName = None
-    self.num = 0
-    self.value = 0
-    self.callback = self.defaultCallback
-    
-  def defaultCallback(self,event):
-    Debug().p("default event callback %s"%event)
-      
-  def __str__(self):
-    return "event %s num %s value %s callback %s"%(self.eventName,self.num,self.value,self.callback)
-    
-class MidiHandler(threading.Thread):
-  __metaclass__ = Singleton
-  def __init__(self):
-    super(MidiHandler,self).__init__()
-    spec = Specs().s
-    hostSpec = Hosts().getLocalAttr('midi')
-    mapperList = hostSpec['devices']
-    mido.set_backend(hostSpec['backend'])
-    self.controlMap = []
-    self.noteMap = []
-    self.inputs = []
-    self.outputs = []
-    self.name = "MidiHandler"
-    self.running = True
-    for n in mapperList:
-      desc = spec[n['id']]
-      if n['inPort']:
-        self.inputs.append(mido.open_input(n['inPort']))
-      if  n['outPort']:
-        self.outputs.append(mido.open_output(n['outPort']))
-      for i in range(0,128):
-        self.controlMap.append(self.findEvent(i,desc['controls']))
-        self.noteMap.append(self.findEvent(i,desc['notes']))
-    self.queue = Queue.Queue()
-    
-    
-        
+
+
+
+
+class MidiPortHandler(object):
+  def __init__(self,iname,oname):
+    self.name = iname
+    self.iport = mido.open_input(iname)
+    self.oport = mido.open_output(oname)
     self.rtMap = {
       'clock' : self.nop
       ,'stop' : self.nop
       ,'start' : self.nop
       ,'songpos' : self.nop
       ,'continue' : self.nop
-      ,'control_change': self.control_change
-      ,'note_on' : self.note_on
+      ,'control_change': self.nop
+      ,'note_on' : self.nop
       ,'note_off' : self.nop
       ,'pitchwheel' : self.nop
+      ,'sysex' : self.nop
     }
-    
-  def register(self,eventName,callback):
-    
-    for e in self.controlMap:
-      if e.eventName == eventName:
-        Debug().p("register %s to %s"%(eventName,callback))
-        e.callback = callback
-        
-    for e in self.noteMap:
-      if e.eventName == eventName:
-        e.callback = callback
-            
-  def findEvent(self,num,desc):
-    rval = Event();
-    for k in desc.keys():
-      min = desc[k][0]
-      if len (desc[k]) == 2:
-        max = desc[k][1]
-      else:
-        max = min
-      if num in range(min,max+1):
-        Debug().p("found %s %d"%(k,num))
-        rval.eventName = k
-        rval.num = num-min
-        break
-    return rval
-    
-  
-  def control_change(self,msg):
-    ev = self.controlMap[msg.control]
-    #Debug().p("%s got %s ev %s"%(self.name,msg,ev))
-    ev.value = msg.value
-    ev.callback(ev)
+  def rtRegister(self,rt,callback):
+    self.rtMap[rt] = callback
       
-  def note_on(self,msg):
-    ev = self.noteMap[msg.note]
-    if ev.eventName != None:
-      ev.value = msg.velocity
-      ev.callback(ev)
-  
-  def mapRt(self,name,callback):
-    self.rtMap[name] = callback
-  
-  def nop(msg):
-    print_dgb("%s: ignoring %s"%(name,msg))
+  def nop(self,msg):
+    Debug().p("%s: ignoring %s"%(self.name,msg))
     
+  def sendSysex(self,sysex):
+    self.oport.send(mido.Message('sysex',data=sysex))
+    
+class MidiHandler(threading.Thread):
+  __metaclass__ = Singleton
+  def __init__(self):
+    super(MidiHandler,self).__init__()
+    spec = Specs().s
+    self.midiSpec = Hosts().getLocalAttr('midi')
+    mido.set_backend(self.midiSpec['backend']) 
+    self.name = "MidiHandler"
+    self.running = True
+    self.queue = Queue.Queue()
+    self.portHandlers = []
+    
+  def addPortHandler(self,p):
+    p.outport = mido.open_output
+    self.portHandlers.append(p)
+      
   def run(self):
     print("%s starting"%self.name)
+    for d in self.midiSpec['devices']:
+      if d['id'] == 'nano':
+        from nanoPlayer import NanoPlayer
+        NanoPlayer(d)
+      
     while self.running:
       try:
         msg = self.queue.get_nowait()
@@ -120,10 +75,10 @@ class MidiHandler(threading.Thread):
         
       #for msg in mido.ports.multi_receive(self.inputs):
         #self.rtMap[msg.type](msg)
-      for i in self.inputs:
-        msg = i.poll()
+      for p in self.portHandlers:
+        msg = p.iport.poll()
         if msg is not None:
-          self.rtMap[msg.type](msg)
+          p.rtMap[msg.type](msg)
           
           
   
