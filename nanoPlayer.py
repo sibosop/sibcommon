@@ -40,7 +40,7 @@ class NanoPlayer(object):
   __metaclass__ = Singleton
   sceneReq = [0x42,0x40,0x00,0x01,0x13,0x00,0x1F,0x10,0x00]
   togLocs = [17,23]
-  transTogs = [301]
+  transTogs = [307]
   def __init__(self,device):
     self.name = "%sPlayer"%device['id']
     desc = Specs().s[device['id']]
@@ -160,14 +160,15 @@ class NanoPlayer(object):
     
   def doStart(self,msg):
     Debug().p("%s Start %s"%(self.name,msg))
+    if msg.value == 127:
+      doStartMusic("")
+    else:
+      doHaltMusic("")
     return
     
   def doStop(self,msg):
     Debug().p("%s Stop %s"%(self.name,msg))
-    if msg.value == 0:
-      doStartMusic({'cmd' : 'StartMusic'})
-    else:
-      doHaltMusic({'cmd' : 'HaltMusic'})
+    
     return
     
   def doBegin(self,msg):

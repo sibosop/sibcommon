@@ -32,7 +32,7 @@ class MusicPlayer(threading.Thread):
     self.mutex = threading.Lock()
     self.queue = Queue.Queue()
     self.collection = defaultCollection
-    self.waitTime = 0.1
+    self.waitTime = None
     self.musicBlocks = {}
     for h in Hosts().getHosts():
       if h['hasMusic']:

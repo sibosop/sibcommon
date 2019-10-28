@@ -14,6 +14,7 @@ from debug import Debug
 from singleton import Singleton
 import upgrade
 from asoundConfig import setVolume
+from asoundConfig import getVolume
 
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
@@ -64,21 +65,29 @@ class Server(threading.Thread):
     self.name = "ServerThread: %s:%d"%(self.host,port)
     print("%s"%(self.name))
     self.server = ThreadedHTTPServer((self.host, self.port), MyHandler)
+    self.probeCallbacks = []
 
     self.commandTable = {
       'Poweroff' : Server.doPoweroff
-      ,'Probe' : Server.doProbe
+      ,'Probe' : self.doProbe
       ,'Reboot' : Server.doReboot
       ,'Restart' : Server.doRestart
       ,'Stop' : Server.doStop
       ,'Upgrade' : Server.doUpgrade
       ,'Volume' : Server.setVolume
     }
+    self.setProbe(Server.getVolume)
+    
+  def setProbe(self,cb):
+    self.probeCallbacks.append(cb)
     
   @staticmethod
   def setVolume(args):
     return Hosts().jsonStatus(setVolume(args['value']))
-    
+  
+  @staticmethod
+  def getVolume():
+    return{'Volume' : getVolume()}
 
   @staticmethod
   def doStop(args):
@@ -96,13 +105,17 @@ class Server(threading.Thread):
     sys.stderr.flush()
     os._exit(num)
     
-  @staticmethod  
-  def doProbe(args):
+  def doProbe(self,args):
     state = {}
     state['status'] = "ok"
     attr = Hosts().getHost(Hosts().getLocalHost())
     for k in attr.keys():
       state[k]=attr[k]
+    for cb in self.probeCallbacks:
+      info = cb()
+      for k in info.keys():
+        state[k] = info[k]
+        
     return json.dumps(state)
 
   @staticmethod

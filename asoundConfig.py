@@ -141,7 +141,7 @@ def getVolume():
   hw=getHw()
   print("max volume: %s"%hw['max'])
   volRat = float(hw['max'])/100.0
-  print("max volume: %d vol: %f volRat: %f"%(hw['max'],vol,volRat))
+  print("max volume: %s vol: %f volRat: %f"%(hw['max'],vol,volRat))
   cmdHdr = ["amixer", "-c",hw['Speaker'],"cget","numid=3"]
   try:
     cmd = cmdHdr[:]
