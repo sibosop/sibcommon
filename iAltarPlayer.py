@@ -17,7 +17,7 @@ from httplib import BadStatusLine
 
 import textSpeaker
 from archive import Archive
-from displayHandler import DisplayHandler
+from imageHandler import ImageHandler
 from specs import Specs
 from hosts import Hosts
 from phraseHandler import PhraseHandler
@@ -94,15 +94,15 @@ class iAltar(threading.Thread):
     for h in hosts:
       ip = h['ip']
       if Hosts().isLocalHost(ip):
-        DisplayHandler.clearCache(None)
+        ImageHandler.clearCache(None)
       else:
         Hosts().sendToHost(ip,{'cmd' : 'ClearCache' , 'args' : None});
-      if Hosts().getAttr(ip,'hasiAltar'):
-        if Hosts().getAttr(ip,'hasDisplay') and Hosts().getAttr(ip,'displayType') == 'Image':
+      iAltar = Hosts().getAttr(ip,'iAltar')
+      if iAltar['enabled']:
+        if iAltar['image']:
           Debug().p("%s: display type for %s: image"%(self.name,ip))
           imageHosts.append(ip)
-
-        if Hosts().getAttr(ip,'hasPhrase'):
+        if iAltar['phrase']:
           Debug().p("%s: wants phrase for %s: "%(self.name,ip))
           phraseHosts.append(ip)
     sleepTime = .001      
@@ -149,7 +149,8 @@ class iAltar(threading.Thread):
         phraseArgs['phrase'] = choices
         Debug().p("%s sending %s to %s"%(self.name,choices,ip))
         for h in phraseHosts:
-          if Hosts().getAttr(h,'hasVoice'):
+          phr = Hosts().getAttr('phrase')
+          if phr['voice']:
             try:
               lang = random.choice(Specs().s['langList'])
               file=textSpeaker.makeSpeakFile("%s %s"%(choices[0],choices[1]),lang)
@@ -187,7 +188,7 @@ class iAltar(threading.Thread):
             extra += 1
           cmd = {'cmd' : "AddImage", 'args' : args}
           if Hosts().isLocalHost(ip):
-            DisplayHandler().addImage(args)
+            ImageHandler().addImage(args)
           else:
             Hosts().sendToHost(ip,cmd)
 
@@ -195,7 +196,7 @@ class iAltar(threading.Thread):
         for ip in imageHosts:
           args =[cacheId]
           if Hosts().isLocalHost(ip):
-            DisplayHandler().setImageDir(args)
+            ImageHandler().setImageDir(args)
           else:
             Hosts().sendToHost(ip,{'cmd' : 'SetImageDir' , 'args' : args});
 
@@ -203,7 +204,7 @@ class iAltar(threading.Thread):
           for ip in imageHosts:
             args =[lastCacheId]
             if Hosts().isLocalHost(ip):
-              DisplayHandler.rmCacheDir(args)
+              ImageHandler.rmCacheDir(args)
             else:
               Hosts().sendToHost(ip,{'cmd' : 'RmCacheDir' , 'args' : args});
         lastCacheId = cacheId

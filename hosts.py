@@ -54,7 +54,7 @@ class Hosts(object):
   
   def getHostIps(self):
     rval = []
-    for h in self,hosts:
+    for h in self.hosts:
       rval.append(h['ip'])
     return rval
 

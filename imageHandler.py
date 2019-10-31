@@ -19,11 +19,11 @@ from singleton import Singleton
 from server import Server
 from display import Display
 
-class DisplayHandler(threading.Thread):
+class ImageHandler(threading.Thread):
   __metaclass__ = Singleton
   def __init__(self):
-    super(DisplayHandler,self).__init__()
-    self.name = "DisplayHandler"
+    super(ImageHandler,self).__init__()
+    self.name = "ImageHandler"
     print("starting: %s"%self.name)
     Watchdog().add(self)
     self.currentId = None
@@ -61,19 +61,19 @@ class DisplayHandler(threading.Thread):
   
   @staticmethod 
   def getCacheDir(id):
-    path = "%s/%d"%(DisplayHandler.getImageCache(),id)
+    path = "%s/%d"%(ImageHandler.getImageCache(),id)
     return mkpath(path)
     
   @staticmethod 
   def getCacheDir(id):
-    path = DisplayHandler.getImageCache()+"/%d"%id
+    path = ImageHandler.getImageCache()+"/%d"%id
     return mkpath(path)
   
   @staticmethod 
   def rmCacheDir(args):
     rval = "ok"
     id = args[0]
-    path = DisplayHandler.getCacheDir(id)
+    path = ImageHandler.getCacheDir(id)
     try:
       shutil.rmtree(path)
     except OSError as e:
@@ -88,7 +88,7 @@ class DisplayHandler(threading.Thread):
   
   @staticmethod 
   def clearCache(args):
-    path = DisplayHandler.getImageCache()
+    path = ImageHandler.getImageCache()
     for f in os.listdir(path):
       try:
         r = path+"/%s"%f
