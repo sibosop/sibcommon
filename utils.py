@@ -3,6 +3,7 @@ import urllib2
 import os
 from hosts import Hosts
 from debug import Debug
+from asoundConfig import setVolume
   
 def internetOn():
   try:
@@ -34,7 +35,15 @@ def doHaltMusic(cmd):
       Debug().p("Halt Music for ip %s music: %s"%(ip,music))
       Hosts().sendToHost(ip,hscmd)
   return 0
-  
+
+def doSetVolume(val):
+  vcmd = { 'cmd' : 'Volume', 'args' : {'value' : val}}
+  for ip in Hosts().getHostIps():
+    if ip == Hosts().getLocalHost():
+      setVolume(val)
+      continue
+    Hosts().sendToHost(ip,vcmd)
+
 def doHaltSound(ip):
   hscmd = { 'cmd' : 'HaltSound', 'args' : [""] }
   Hosts().sendToHost(h['ip'],hscmd)

@@ -15,6 +15,12 @@ from utils import data_to_sysex
 from midiHandler import MidiPortHandler
 from midiHandler import MidiHandler
 from specs import Specs
+from asoundConfig import getVolume
+from utils import doSetVolume
+import threading
+import Queue
+from threadMgr import ThreadMgr
+
 
 class ControlBlock(object):
   def __init__(self,ip):
@@ -35,6 +41,27 @@ class RtEvent(object):
   def __str__(self):
     return "event %s num %s value %s callback %s"%(self.eventName,self.num,self.value,self.callback)
 
+class VolumeThread(threading.Thread):
+  __metaclass__ = Singleton
+  def __init__(self):
+    super(VolumeThread,self).__init__()
+    self.name = "VolumeThread"
+    self.queue = Queue.Queue()
+    self.queueTimeout = 2
+    self.lock = threading.Lock()
+    
+  def run(self):
+    print("%s starting"%(self.name))
+    while True:
+      vol = self.queue.get()
+      if type(vol) is str and vol == "__stop__":
+        print("%s stopping"%self.name)
+        break
+      self.lock.acquire()
+      doSetVolume(vol)
+      self.lock.release()
+        
+        
 
 class NanoPlayer(object):
   __metaclass__ = Singleton
@@ -62,6 +89,7 @@ class NanoPlayer(object):
       if music['enabled'] and music['player']:
         Debug().p("%s added added music player host %s"%(self.name,h['ip']))
         self.playerIps.append(h['ip'])
+    
         
     self.register("slider", self.doSlider)
     self.register("pot", self.doPot)
@@ -84,6 +112,8 @@ class NanoPlayer(object):
     self.scene = None
     
     self.sendSysex(NanoPlayer.sceneReq)
+    ThreadMgr().start(VolumeThread())  
+    self.curVol = getVolume()
     
     
   def sendSysex(self,sysex):
@@ -195,12 +225,33 @@ class NanoPlayer(object):
     for ip in self.playerIps:
       doMute(ip,cb.ip,msg.value == 127)
     return
+    
   def doPrevTrack(self,msg):
-    Debug().p("%s PrevTrack %s"%(self.name,msg))
+    if msg.value == 0:
+      return    
+    Debug().p("%s: current vol %d"%(self.name,self.curVol))
+    self.curVol -= 2
+    if self.curVol < 0:
+      self.curVol = 0 
+    if VolumeThread().lock.acquire(False):
+      VolumeThread().queue.put(self.curVol)
+      VolumeThread().lock.release()
+    Debug().p("%s PrevTrack %s curVol %d"%(self.name,msg,self.curVol))
     return
+    
   def doNextTrack(self,msg):
-    Debug().p("%s NextTrack %s"%(self.name,msg))
+    if msg.value == 0:
+      return    
+    Debug().p("%s: current vol %d"%(self.name,self.curVol))
+    self.curVol += 2
+    if self.curVol > 100:
+      self.curVol = 100 
+    if VolumeThread().lock.acquire(False):
+      VolumeThread().queue.put(self.curVol)
+      VolumeThread().lock.release()
+    Debug().p("%s NextTrack %s curVol %d"%(self.name,msg,self.curVol))
     return
+    
   def doSetMark(self,msg):
     Debug().p("%s SetMark %s"%(self.name,msg))
     return
