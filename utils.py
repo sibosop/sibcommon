@@ -2,6 +2,7 @@
 import urllib2
 import os
 from hosts import Hosts
+from debug import Debug
   
 def internetOn():
   try:
@@ -24,11 +25,13 @@ def doHaltMusic(cmd):
   hscmd = { 'cmd' : 'HaltSound', 'args' : [""] }
   hosts = Hosts().getHostIps()
   for ip in hosts:
-    music = Hots().getAttr(ip,'music')
-    if music['player']:
+    music = Hosts().getAttr(ip,'music')
+    Debug().p("Test Halt for ip %s music: %s"%(ip,music))
+    if music['enabled'] and music['player']:
       Hosts().sendToHost(ip,hmcmd)
-  for h in hosts:
-    if music['enaled']:
+      Debug().p("Halt Player for ip %s music: %s"%(ip,music))
+    if music['enabled']:
+      Debug().p("Halt Music for ip %s music: %s"%(ip,music))
       Hosts().sendToHost(ip,hscmd)
   return 0
   
