@@ -148,8 +148,8 @@ class iAltar(threading.Thread):
       if len(phraseHosts) != 0:
         phraseArgs['phrase'] = choices
         Debug().p("%s sending %s to %s"%(self.name,choices,ip))
-        for h in phraseHosts:
-          phr = Hosts().getAttr('phrase')
+        for ip in phraseHosts:
+          phr = Hosts().getAttr(ip,'phrase')
           if phr['voice']:
             try:
               lang = random.choice(Specs().s['langList'])

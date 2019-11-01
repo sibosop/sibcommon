@@ -22,13 +22,14 @@ def mkpath(path):
 def doHaltMusic(cmd):
   hmcmd = { 'cmd' : 'HaltMusic', 'args' : [""] }
   hscmd = { 'cmd' : 'HaltSound', 'args' : [""] }
-  hosts = Hosts().getHosts()
+  hosts = Hosts().getHostIps()
+  for ip in hosts:
+    music = Hots().getAttr(ip,'music')
+    if music['player']:
+      Hosts().sendToHost(ip,hmcmd)
   for h in hosts:
-    if h['hasMusicPlayer']:
-      Hosts().sendToHost(h['ip'],hmcmd)
-  for h in hosts:
-    if h['hasMusic']:
-      Hosts().sendToHost(h['ip'],hscmd)
+    if music['enaled']:
+      Hosts().sendToHost(ip,hscmd)
   return 0
   
 def doHaltSound(ip):
@@ -37,10 +38,11 @@ def doHaltSound(ip):
 
 def doStartMusic(cmd):
   smcmd = { 'cmd' : 'StartMusic', 'args' : [""] }
-  hosts = Hosts().getHosts()
-  for h in hosts:
-    if h['hasMusicPlayer']:
-      Hosts().sendToHost(h['ip'],smcmd)
+  hosts = Hosts().getHostIps()
+  for ip in hosts:
+    music = Hosts().getAttr(ip,'music')
+    if music['enabled']:
+      Hosts().sendToHost(ip,smcmd)
   return 0
 
 def doMute(pip,mip,flag):

@@ -25,7 +25,6 @@ class PhraseHandler(threading.Thread):
     self.name = "PhraseHandler"
     print("starting: %s"%self.name)
     Watchdog().add(self)
-    self.display = Hosts().getLocalAttr("display")
     self.phrase = Hosts().getLocalAttr("phrase")
     self.queue = Queue.Queue()
     if Hosts().getLocalAttr("hasServer"):
@@ -40,7 +39,7 @@ class PhraseHandler(threading.Thread):
   def run(self):
     print "%s starting"%self.name
     splash = Specs().s['splashImg']
-    if self.display['enabled'] and self.display['type'] == "Phrase":
+    if self.phrase['image']:
       Debug().p("%s displaying f:%s"%(self.name,splash))
       Display().image(splash)
     while True:
@@ -51,14 +50,14 @@ class PhraseHandler(threading.Thread):
         print("%s stopping"%self.name)
         break
       Debug().p("%s Displaying Phrase %s"%(self.name,p['phrase']))
-      if self.display['enabled'] and self.display['type'] == "Phrase":
+      if self.phrase['image']:
         Display().text(p['phrase'])
-      if phrase['voice']:
+      if self.phrase['voice']:
         if Voice().isAlive():
           Voice().sendPhrase(p)
         else:
           print("%s: %s is dead"%(self.name,Voice().name))
-      if phrase['panel']:
+      if self.phrase['panel']:
         Panel().printText(p['phrase'])
 
 

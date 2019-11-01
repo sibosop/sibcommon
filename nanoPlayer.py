@@ -58,7 +58,8 @@ class NanoPlayer(object):
       if h['nanoId'] != -1:
         self.controlBlocks[h['nanoId']] = ControlBlock(h['ip'])
         Debug().p("%s added nano id %d for host %s"%(self.name,h['nanoId'],h['ip']))
-      if h['hasMusicPlayer']:
+      music = h['music']
+      if music['enabled'] and music['player']:
         Debug().p("%s added added music player host %s"%(self.name,h['ip']))
         self.playerIps.append(h['ip'])
         

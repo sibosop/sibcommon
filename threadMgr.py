@@ -11,6 +11,7 @@ class ThreadMgr(object):
     self.daemon = False
   
   def start(self,t):
+    print("%s starting %s"%(self.name,t.name))
     self.tlist[t.name] = t
     t.setDaemon(self.daemon)
     t.start()

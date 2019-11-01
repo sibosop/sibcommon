@@ -34,9 +34,10 @@ class MusicPlayer(threading.Thread):
     self.collection = defaultCollection
     self.waitTime = None
     self.musicBlocks = {}
-    for h in Hosts().getHosts():
-      if h['hasMusic']:
-        self.musicBlocks[h['ip']] = MusicBlock()
+    for ip in Hosts().getHostIps():
+      music = Hosts().getAttr(ip,"music")
+      if music['enabled']:
+        self.musicBlocks[ip] = MusicBlock()
         
     SoundFile().setCurrentCollection(self.collection)
     if Hosts().getLocalAttr("hasServer"):
