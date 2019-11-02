@@ -7,7 +7,6 @@ import os
 import io
 import grpc
 from debug import Debug
-from singleton import Singleton
 from recogAnalyzer import RecogAnalyzer
 
 from google.cloud import speech
@@ -18,12 +17,12 @@ warnings.filterwarnings("ignore", "Your application has authenticated using end 
 
 
 class Recog(threading.Thread):
-  __metaclass__ = Singleton
-  def __init__(self):
+  def __init__(self,anal):
     super(Recog,self).__init__()
     self.name = "Recog Thread"
     self.queue = Queue.Queue()
     self.running = True
+    self.anal = anal
 
   class dataStream(object):
     def __init__(self,recog):
@@ -35,7 +34,7 @@ class Recog(threading.Thread):
       return self
     def next(self):
       Debug().p(self.recog.name+" in dataStream next")
-      chunk = Recog().queue.get()
+      chunk = self.recog.queue.get()
       if type(chunk) is str and chunk == "__stop__":
         print("%s stopping"%self.recog.name)
         self.recog.running=false
@@ -78,7 +77,7 @@ class Recog(threading.Thread):
               for alternative in alternatives:
                 #syslog.syslog('Confidence: {}'.format(alternative.confidence))
                 print('Transcript: {}'.format(alternative.transcript))
-                RecogAnalyzer().queue.put(alternative.transcript)
+                self.anal.queue.put(alternative.transcript)
 
       except grpc.RpcError, e:
         if e.code() not in (grpc.StatusCode.INVALID_ARGUMENT,

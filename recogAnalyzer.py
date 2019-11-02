@@ -3,18 +3,17 @@ import threading
 from Queue import Queue
 import time
 from debug import Debug
-from singleton import Singleton
 from recogOutput import RecogOutput
 from display import Display
 
 
 class RecogAnalyzer(threading.Thread):
-  __metaclass__ = Singleton
-  def __init__(self):
+  def __init__(self,output):
     super(RecogAnalyzer,self).__init__()
     self.name = "RecogAnalyzer"
     self.queue = Queue()
     self.chooseLen=6
+    self.output = output
 
   def run(self):
     print("starting: "+self.name)
@@ -29,7 +28,7 @@ class RecogAnalyzer(threading.Thread):
         Debug().p(self.name+"test:"+w)
         if len(w) > self.chooseLen:
           Debug().p(self.name+"CHOSE: "+w)
-          RecogOutput().queue.put(w)
+          self.output.queue.put(w)
 
 
   

@@ -9,15 +9,13 @@ import os
 import alsaaudio
 import grpc
 import asoundConfig
-from singleton import Singleton
 from debug import Debug
 from recog import Recog
 
 
 
 class Recorder(threading.Thread):
-  __metaclass__ = Singleton
-  def __init__(self):
+  def __init__(self,recog):
     super(Recorder,self).__init__()
     self.name = "Recorder Thread"
     self.queue = Queue()
@@ -28,6 +26,7 @@ class Recorder(threading.Thread):
     self.inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
     self.inp.setperiodsize(1600)
     self.loopCount = 1000
+    self.recog = recog
 
   def run(self):
     print("starting: "+self.name)
@@ -51,7 +50,7 @@ class Recorder(threading.Thread):
           buff += data
         time.sleep(.001)
       loops = self.loopCount
-      Recog().queue.put(buff)
+      self.recog.queue.put(buff)
       Debug().p(self.name+" sending: "+str(len(buff)))
 
   def close(self):

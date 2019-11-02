@@ -11,13 +11,12 @@ import words
 import random
 import json
 
-from singleton import Singleton
+
 from debug import Debug
 from hosts import Hosts
 
 
 class RecogOutput(threading.Thread):
-  __metaclass__ = Singleton
   def __init__(self):
     super(RecogOutput,self).__init__()
     self.name = "RecogOutput"
