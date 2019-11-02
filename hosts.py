@@ -78,9 +78,9 @@ class Hosts(object):
         
   def sendToHost(self,ip,cmd):
     rval = True
+    test = ""
     if not self.getAttr(ip,"hasServer"):
       print("sendToHost skipping %s: it is not a server"%ip)
-      return
     try:
       Debug().p("cmd %s"%cmd['cmd'])
       timeout = self.timeout
@@ -99,6 +99,7 @@ class Hosts(object):
       print("ip %s:%s"%(ip,e))
     except Exception,e:
       print("ip %s:%s"%(ip,e))
+    return test
       
 
   def sendWithSubnet(self,ip,cmd):

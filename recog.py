@@ -85,11 +85,11 @@ class Recog(threading.Thread):
           raise
         details = e.details()
         if e.code() == grpc.StatusCode.INVALID_ARGUMENT:
-          #if 'deadline too short' not in details:
-          #  raise
-          #else:
-          #  if 'maximum allowed stream duration' not in details:
-          #      raise
+          if 'deadline too short' not in details:
+            raise
+          else:
+            if 'maximum allowed stream duration' not in details:
+                raise
 
           print(self.name +": "+ details + ' Resuming..')
       except Exception as e:

@@ -9,11 +9,11 @@ from display import Display
 from recorder import Recorder
 from recog import Recog
 from recogAnalyzer import RecogAnalyzer
-from recogOutput import RecogOutput
 import threading
 from singleton import Singleton
 import Queue
 from threadMgr import ThreadMgr
+import json
 
 class RecogHandler(threading.Thread):
   __metaclass__ = Singleton
@@ -26,8 +26,15 @@ class RecogHandler(threading.Thread):
       Server().register({
         'StartRecog' : self.startRecog
         ,'HaltRecog' : self.haltRecog
+        ,'GetRecog' : self.getRecog
       })
+    self.recog = [None,None]
     self.threads=[]
+    self.phraseIps = []
+    for ip in Hosts().getHostIps():
+      recog = Hosts().getAttr(ip,'recog')
+      if recog['enabled'] and recog['phrase']:
+        self.phraseIps.append(ip)
     self.running = True
     Display().text("Recog not Running")
       
@@ -43,17 +50,21 @@ class RecogHandler(threading.Thread):
   def doStart(self):
     Debug().p("%s do Start")
     self.doHalt()
-    ro = RecogOutput()
-    ra = RecogAnalyzer(ro)
+    ra = RecogAnalyzer(self)
     rc = Recog(ra)
     rec = Recorder(rc)
-    self.threads.append(ro)
     self.threads.append(ra)
     self.threads.append(rc)
     self.threads.append(rec)
     for t in self.threads:
       ThreadMgr().start(t)
       
+  def getRecog(self,cmd):
+    Debug().p("starting recog")
+    recog = {}
+    recog['status'] = "ok"
+    recog['recog'] = self.recog
+    return json.dumps(recog)
     
   def startRecog(self,cmd):
     Debug().p("starting recog")
@@ -69,12 +80,23 @@ class RecogHandler(threading.Thread):
     print("%s: starting thread"%self.name)
     while self.running:
       msg = self.queue.get()
-      if msg == "__stop__":
-        self.running = False
-      elif msg == "__halt__":
-        self.doHalt()
-      elif msg == "__start__":
-        self.doStart()
+      if type(msg) is str:
+        if msg == "__stop__":
+          self.running = False
+        elif msg == "__halt__":
+          self.doHalt()
+        elif msg == "__start__":
+          self.doStart()
+      else:
+        self.recog = msg
+        Debug().p("%s got recog: %s"%(self.name,self.recog))
+        cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : self.recog}}
+        for ip in self.phraseIps:
+          Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
+          Hosts().sendToHost(ip,cmd)
+          
+          
+        
         
     print("%s: stopping"%self.name)
     self.doHalt()

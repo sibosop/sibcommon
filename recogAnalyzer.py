@@ -5,6 +5,7 @@ import time
 from debug import Debug
 from recogOutput import RecogOutput
 from display import Display
+from hosts import Hosts
 
 
 class RecogAnalyzer(threading.Thread):
@@ -12,8 +13,11 @@ class RecogAnalyzer(threading.Thread):
     super(RecogAnalyzer,self).__init__()
     self.name = "RecogAnalyzer"
     self.queue = Queue()
-    self.chooseLen=6
+    recog = Hosts().getLocalAttr("recog")
+    self.chooseLen=recog['chooseLen']
+    self.chooseSize=recog['chooseSize']
     self.output = output
+    self.choices = []
 
   def run(self):
     print("starting: "+self.name)
@@ -28,7 +32,12 @@ class RecogAnalyzer(threading.Thread):
         Debug().p(self.name+"test:"+w)
         if len(w) > self.chooseLen:
           Debug().p(self.name+"CHOSE: "+w)
-          self.output.queue.put(w)
+          if w not in self.choices:
+            self.choices.append(w)
+          while len(self.choices) > self.chooseSize:
+            self.choices = self.choices[1:]
+            Debug().p("%s choices %s"%(self.name,self.choices))
+          self.output.queue.put(self.choices)
 
 
   

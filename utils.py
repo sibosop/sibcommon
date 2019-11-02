@@ -20,22 +20,21 @@ def mkpath(path):
       raise
   return path
   
-def sendRecogMsg(start):
-  if start:
-    cmd = { 'cmd' : 'StartRecog', 'args' : [""] }
-  else:  
-    cmd = { 'cmd' : 'HaltRecog', 'args' : [""] }
-  hosts = Hosts().getHostIps()
-  for ip in hosts:
+def sendRecogMsg(cmdStr):
+  cmd = { 'cmd' : cmdStr, 'args' : [""] }
+  for ip in Hosts().getHostIps():
     recog = Hosts().getAttr(ip,'recog')
     if recog['enabled'] and recog['engine']:
         Hosts().sendToHost(ip,cmd)
   return 0
 def doStartRecog(cmd):
-  return sendRecogMsg(True)
+  return sendRecogMsg('StartRecog')
    
 def doHaltRecog(cmd):
-  return sendRecogMsg(False)
+  return sendRecogMsg('HaltRecog')
+
+def doGetRecog(cmd):
+  return sendRecogMsg('GetRecog')
  
   
 def doHaltMusic(cmd):
