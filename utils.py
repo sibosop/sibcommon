@@ -19,6 +19,20 @@ def mkpath(path):
     if not os.path.isdir(path):
       raise
   return path
+
+def sendVoiceMsg(cmdStr):
+  cmd = { 'cmd' : cmdStr, 'args' : [""] }
+  for ip in Hosts().getHostIps():
+    phrase = Hosts().getAttr(ip,'phrase')
+    if phrase['enabled'] and phrase['voice']:
+        Hosts().sendToHost(ip,cmd)
+  return 0
+  
+def doStartVoice(cmd):
+  return sendVoiceMsg('StartVoice')
+   
+def doHaltVoice(cmd):
+  return sendVoiceMsg('HaltVoice')
   
 def sendRecogMsg(cmdStr):
   cmd = { 'cmd' : cmdStr, 'args' : [""] }

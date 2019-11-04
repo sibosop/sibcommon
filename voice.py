@@ -12,7 +12,8 @@ import Queue
 from debug import Debug
 from singleton import Singleton
 from specs import Specs
-
+from server import Server
+from hosts import Hosts
 
 class Voice(threading.Thread):
   __metaclass__ = Singleton
@@ -21,7 +22,21 @@ class Voice(threading.Thread):
     self.name = "Voice"
     self.queue = Queue.Queue()
     self.voiceMinVol=.7
-  
+    self.halted = True
+    self.running = True
+    if Hosts().getLocalAttr('hasServer'):
+      Server().register({
+        'StartVoice' : self.startVoice
+        ,'HaltVoice' : self.haltVoice
+      })
+  def startVoice(self,cmd):
+    self.queue.put("__start__")
+    return Hosts.jsonStatus("ok")
+    
+  def haltVoice(self,cmd):
+    self.queue.put("__halt__")
+    return Hosts.jsonStatus("ok")
+    
   def sendPhrase(self,args):
     p = args['phrase']
     speakText = p[0]+" "+p[1]
@@ -47,7 +62,29 @@ class Voice(threading.Thread):
     voiceMaxVol = Specs().s['voiceMaxVol']
     ts = None
     vt = None
-    while True:
+    while self.running:
+      try:
+        msg = self.queue.get(timeout=ts)
+        if type(msg) is str:
+          if msg == "__stop__":
+            print("%s stopping"%self.name)
+            self.running = False
+          elif msg == "__halt__":
+            self.halted = True
+            print("%s halting"%self.name)
+            ts = None
+          elif msg == "__start__":
+            self.halted = False
+            print("%s starting"%self.name)
+            ts = .1
+          continue
+        Debug().p("voice track change")
+        vt = msg
+      except Queue.Empty:
+        pass
+      if vt==None or self.halted:
+        continue
+        
       reps = 0
       if random.randint(0,1) == 0:
         reps = random.randint(2,4)
@@ -57,14 +94,6 @@ class Voice(threading.Thread):
       for i in range(reps):
         l = (random.random()*(voiceMaxVol-self.voiceMinVol))+self.voiceMinVol
         r = (random.random()*(voiceMaxVol-self.voiceMinVol))+self.voiceMinVol
-        try:
-          vt = self.queue.get(timeout=ts)
-          if type(vt) is str:
-            print("%s stopping"%self.name)
-            return
-          Debug().p("voice track change")
-        except Queue.Empty:
-          pass
         playSound(vt,l,r)
         if reps > 1:
           ts = random.random()

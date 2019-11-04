@@ -12,6 +12,8 @@ from utils import doHaltSound
 from utils import doMute
 from utils import doStartRecog
 from utils import doHaltRecog
+from utils import doStartVoice
+from utils import doHaltVoice
 from utils import sysex_to_data
 from utils import data_to_sysex
 from midiHandler import MidiPortHandler
@@ -69,10 +71,12 @@ class NanoPlayer(object):
   __metaclass__ = Singleton
   sceneReq = [0x42,0x40,0x00,0x01,0x13,0x00,0x1F,0x10,0x00]
   togLocs = [17,23]
-  transTogs = [301,307]
+  transTogs = [295,301,307]
+  sliderMaxLoc = 8 
+  knobMaxLoc = 14
   def __init__(self,device):
     self.name = "%sPlayer"%device['id']
-    desc = Specs().s[device['id']]
+    self.desc = Specs().s[device['id']]
     iph = MidiPortHandler(device["inPort"],device['outPort'])
     iph.rtRegister("control_change",self.control_change)
     iph.rtRegister("sysex",self.sysex)
@@ -80,7 +84,7 @@ class NanoPlayer(object):
     self.outport = iph.oport
     self.controlMap = []
     for i in range(0,128):
-      self.controlMap.append(self.findEvent(i,desc['controls']))
+      self.controlMap.append(self.findEvent(i,self.desc['controls']))
     self.controlBlocks = [-1] * 8
     self.playerIps = []
     for h in Hosts().getHosts():
@@ -116,6 +120,7 @@ class NanoPlayer(object):
     self.sendSysex(NanoPlayer.sceneReq)
     ThreadMgr().start(VolumeThread())  
     self.curVol = getVolume()
+    self.soundList = []
     
     
   def sendSysex(self,sysex):
@@ -124,13 +129,24 @@ class NanoPlayer(object):
       
   def sysex(self,msg):
     Debug().p("sysex got msg %s"%msg)
+    
     if self.setupState == "RequestSceneData":
       self.scene = sysex_to_data(msg.data[12:])
+      for l in self.desc['soundLists']:
+        for s in l:
+          self.soundList.append(s)
+      maxSounds = len(self.soundList)
+      maxSounds &= 0x7f
       for y in range(0,8):
         for x in NanoPlayer.togLocs:
           self.scene[x+(y*31)] = 1
+        maxNotes = 48
+        self.scene[NanoPlayer.sliderMaxLoc+(y*31)] = maxNotes 
+        self.scene[NanoPlayer.knobMaxLoc+(y*31)] = maxSounds
       for x in NanoPlayer.transTogs:
         self.scene[x] = 1
+      
+      
       retData = data_to_sysex(self.scene)
       header = []
       for c in range(0,12):
@@ -212,8 +228,13 @@ class NanoPlayer(object):
   def doBegin(self,msg):
     Debug().p("%s Begin %s"%(self.name,msg))
     return
+    
   def doEnd(self,msg):
     Debug().p("%s End %s"%(self.name,msg))
+    if msg.value == 127:
+      doStartVoice("")
+    else:
+      doHaltVoice("")
     return
   def doRecord(self,msg):
     Debug().p("%s Record %s"%(self.name,msg))
