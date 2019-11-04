@@ -10,6 +10,8 @@ from utils import doStartMusic
 from utils import doHaltMusic
 from utils import doHaltSound
 from utils import doMute
+from utils import doStartRecog
+from utils import doHaltRecog
 from utils import sysex_to_data
 from utils import data_to_sysex
 from midiHandler import MidiPortHandler
@@ -67,7 +69,7 @@ class NanoPlayer(object):
   __metaclass__ = Singleton
   sceneReq = [0x42,0x40,0x00,0x01,0x13,0x00,0x1F,0x10,0x00]
   togLocs = [17,23]
-  transTogs = [307]
+  transTogs = [301,307]
   def __init__(self,device):
     self.name = "%sPlayer"%device['id']
     desc = Specs().s[device['id']]
@@ -199,6 +201,11 @@ class NanoPlayer(object):
     
   def doStop(self,msg):
     Debug().p("%s Stop %s"%(self.name,msg))
+    if msg.value == 127:
+      doStartRecog("")
+    else:
+       doHaltRecog("")
+    
     
     return
     
