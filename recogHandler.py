@@ -58,6 +58,7 @@ class RecogHandler(threading.Thread):
     self.threads.append(rec)
     for t in self.threads:
       ThreadMgr().start(t)
+    Display().text("Recog Running")
       
   def getRecog(self,cmd):
     Debug().p("starting recog")
