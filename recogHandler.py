@@ -28,13 +28,17 @@ class RecogHandler(threading.Thread):
         ,'HaltRecog' : self.haltRecog
         ,'GetRecog' : self.getRecog
       })
-    self.recog = [None,None]
     self.threads=[]
-    self.phraseIps = []
+    self.finalIps = []
+    self.searchIps = []
     for ip in Hosts().getHostIps():
       recog = Hosts().getAttr(ip,'recog')
-      if recog['enabled'] and recog['phrase']:
-        self.phraseIps.append(ip)
+      if recog['enabled'] and recog['phrase'] == "final":
+        Debug().p("%s ip %s wants final phrase"%(self.name,ip))
+        self.finalIps.append(ip)
+      if recog['enabled'] and recog['phrase'] == "search":
+        Debug().p("%s ip %s wants search phrase"%(self.name,ip))
+        self.searchIps.append(ip)
     self.running = True
     Display().text("Recog not Running")
       
@@ -89,10 +93,13 @@ class RecogHandler(threading.Thread):
         elif msg == "__start__":
           self.doStart()
       else:
-        self.recog = msg
-        Debug().p("%s got recog: %s"%(self.name,self.recog))
-        cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : self.recog}}
-        for ip in self.phraseIps:
+        Debug().p("%s got recog: %s"%(self.name,msg))
+        for ip in self.searchIps:
+          cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['search']}}
+          Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
+          Hosts().sendToHost(ip,cmd)
+        for ip in self.finalIps:
+          cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['final']}}
           Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
           Hosts().sendToHost(ip,cmd)
           

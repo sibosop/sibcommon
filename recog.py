@@ -66,18 +66,10 @@ class Recog(threading.Thread):
       try:
         responses = self.client.streaming_recognize(streaming_config, requests)
         for response in responses:
-          # Once the transcription has settled, the first result will contain the
-          # is_final result. The other results will be for subsequent portions of
-          # the audio.
+          
           for result in response.results:
-              Debug().p('Finished: {}'.format(result.is_final))
-              Debug().p('Stability: {}'.format(result.stability))
-              alternatives = result.alternatives
-              # The alternatives are ordered from most likely to least.
-              for alternative in alternatives:
-                #syslog.syslog('Confidence: {}'.format(alternative.confidence))
-                print('Transcript: {}'.format(alternative.transcript))
-                self.anal.queue.put(alternative.transcript)
+            self.anal.queue.put(result)
+              
 
       except grpc.RpcError, e:
         if e.code() not in (grpc.StatusCode.INVALID_ARGUMENT,

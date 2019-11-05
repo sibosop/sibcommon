@@ -17,30 +17,32 @@ class RecogAnalyzer(threading.Thread):
     self.chooseLen=recog['chooseLen']
     self.chooseSize=recog['chooseSize']
     self.output = output
+    self.running = True
     self.choices = []
 
   def run(self):
     print("starting: "+self.name)
-    while True:
-      input = self.queue.get()
-      if input == "__stop__":
-        Debug().p("%s: stopping"%(self.name))
-        break
-      Debug().p(self.name+" got "+ input)
-      Display().text(input)
-      for w in input.split():
-        Debug().p(self.name+"test:"+w)
-        if len(w) > self.chooseLen:
-          Debug().p(self.name+"CHOSE: "+w)
-          if w not in self.choices:
-            self.choices.append(w)
-          while len(self.choices) > self.chooseSize:
-            self.choices = self.choices[1:]
-            Debug().p("%s choices %s"%(self.name,self.choices))
-          self.output.queue.put(self.choices)
-
-
-  
+    while self.running:
+      result = self.queue.get()
+      if type(result) == str:
+        if result == "__stop__":
+          print("%s: stopping"%(self.name))
+          self.running = False
+        continue
+      # Once the transcription has settled, the first result will contain the
+      # is_final result. The other results will be for subsequent portions of
+      # the audio.
+      Debug().p('Final: %s'%(result.is_final))
+      Debug().p('Stability: %f'%(result.stability))
+      # The alternatives are ordered from most likely to least.
+      alternatives = result.alternatives
+      for alternative in alternatives:
+        Display().text(alternative.transcript)
+        if result.is_final:
+          Debug().p('Confidence: %f'%(alternative.confidence))
+          Debug().p('Transcript: %s'%(alternative.transcript))
+          args = {"final" : alternative.transcript, "search" : ['search','string']}
+          self.output.queue.put(args)
 
 
   
