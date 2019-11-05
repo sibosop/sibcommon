@@ -14,8 +14,10 @@ from utils import doStartRecog
 from utils import doHaltRecog
 from utils import doStartVoice
 from utils import doHaltVoice
+from utils import doPoweroff
 from utils import sysex_to_data
 from utils import data_to_sysex
+from utils import doSetSearch
 from midiHandler import MidiPortHandler
 from midiHandler import MidiHandler
 from specs import Specs
@@ -71,7 +73,7 @@ class NanoPlayer(object):
   __metaclass__ = Singleton
   sceneReq = [0x42,0x40,0x00,0x01,0x13,0x00,0x1F,0x10,0x00]
   togLocs = [17,23]
-  transTogs = [295,301,307]
+  transTogs = [289,295,301,307]
   sliderMaxLoc = 8 
   knobMaxLoc = 14
   def __init__(self,device):
@@ -227,6 +229,10 @@ class NanoPlayer(object):
     
   def doBegin(self,msg):
     Debug().p("%s Begin %s"%(self.name,msg))
+    if msg.value == 127:
+      doSetSearch("Google")
+    else:
+      doSetSearch("Archive")
     return
     
   def doEnd(self,msg):
@@ -241,6 +247,7 @@ class NanoPlayer(object):
     return
   def doCycle(self,msg):
     Debug().p("%s Cycle %s"%(self.name,msg))
+    doPoweroff('cmd')
     return
   def doSolo(self,msg):
     Debug().p("%s Solo %s"%(self.name,msg))

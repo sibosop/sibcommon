@@ -44,9 +44,9 @@ class iAltar(threading.Thread):
     self.queue = Queue.Queue()
     
     
-    
-  def setSearchType(self,t):
-    self.searchType = t[0]
+  def setSearchType(self,args):
+    self.searchType = args['type']
+    Debug().p("%s set Search Type to %s"%(self.name,self.searchType))
     Archive().reset()
     return Hosts.jsonStatus("ok")
 
@@ -69,11 +69,12 @@ class iAltar(threading.Thread):
       raw_img=None
       for t in imageTypes:
         try:
-          Debug().p( "open image type:"+t+" image:",url[t] )
+          Debug().p( "open image type: %s image: %s"%(t,url[t]))
           response=requests.get(url[t],timeout=20)
           raw_img = response.content
           break;
         except Exception as e:
+          traceback.print_exc()
           print "return from exception for type %s url %s: %s"%(t,url[t],e)
           continue
       if raw_img != None:
@@ -83,7 +84,7 @@ class iAltar(threading.Thread):
         f.write(raw_img)
         f.close()
         images.append(fname)
-    return image
+    return images
   
   def run(self):
     print("%s in run loop"%self.name)

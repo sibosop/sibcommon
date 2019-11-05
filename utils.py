@@ -19,6 +19,15 @@ def mkpath(path):
     if not os.path.isdir(path):
       raise
   return path
+  
+def doSetSearch(search):
+  cmd = { 'cmd' : "Search", 'args' : {'type' : search}}
+  for ip in Hosts().getHostIps():
+    iAltar = Hosts().getAttr(ip,'iAltar')
+    if iAltar['enabled'] and iAltar['player']:
+      Hosts().sendToHost(ip,cmd)
+  
+  
 
 def sendVoiceMsg(cmdStr):
   cmd = { 'cmd' : cmdStr, 'args' : [""] }
@@ -41,6 +50,19 @@ def sendRecogMsg(cmdStr):
     if recog['enabled'] and recog['engine']:
         Hosts().sendToHost(ip,cmd)
   return 0
+  
+def doPoweroff(cmdStr):
+  cmd = { 'cmd' : 'Poweroff', 'args' : [""] }
+  lh = Hosts().getLocalHost()
+  for ip in Hosts().getHostIps():
+    if ip == lh:
+      continue
+    if Hosts().getAttr(ip,'hasServer'):
+      Hosts().sendToHost(ip,cmd)
+  if Hosts().getLocalAttr('hasServer'):
+    Hosts().sendToHost(lh,cmd)
+  return 0  
+  
 def doStartRecog(cmd):
   return sendRecogMsg('StartRecog')
    

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import traceback
 import glob
 import random
 import subprocess
@@ -70,6 +71,7 @@ class Archive(object):
           Debug().p(line.rstrip())
           choices.append(line.rstrip())
     except:
+      traceback.print_exc()
       e = sys.exc_info()[0]
       print("choice name append "+str(e))
 
@@ -98,7 +100,7 @@ class Archive(object):
           fb = os.path.basename(file)
           tf.write("%s\n"%fb)
         tf.close()
-        cmd = ["tar","-czf",adir+"/"+str(uuid.uuid4())+".tgz","-C",cdir,"-T",tmpFile]
+        cmd = ["tar","-czf",self.adir+"/"+str(uuid.uuid4())+".tgz","-C",cdir,"-T",tmpFile]
         Debug().p("cmd %s"%cmd)
         subprocess.check_output(cmd)
       except subprocess.CalledProcessError, e:
