@@ -60,6 +60,7 @@ class RecogHandler(threading.Thread):
     self.threads.append(ra)
     self.threads.append(rc)
     self.threads.append(rec)
+    self.recog = []
     for t in self.threads:
       ThreadMgr().start(t)
     Display().text("Recog Running")
@@ -96,8 +97,10 @@ class RecogHandler(threading.Thread):
         #Debug().p("%s got recog: %s"%(self.name,msg))
         for ip in self.searchIps:
           cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['search']}}
-         # Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
-          Hosts().sendToHost(ip,cmd)
+          if len(msg['search']) >= 2:
+            # Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
+            Hosts().sendToHost(ip,cmd)
+            self.recog = msg['search']
         for ip in self.finalIps:
           cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['final']}}
           #Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
