@@ -19,6 +19,7 @@ class RecogAnalyzer(threading.Thread):
     self.output = output
     self.running = True
     self.choices = []
+    self.lastTime = time.time()
 
   def run(self):
     print("starting: "+self.name)
@@ -32,16 +33,26 @@ class RecogAnalyzer(threading.Thread):
       # Once the transcription has settled, the first result will contain the
       # is_final result. The other results will be for subsequent portions of
       # the audio.
-      Debug().p('Final: %s'%(result.is_final))
-      Debug().p('Stability: %f'%(result.stability))
+      #Debug().p('Final: %s'%(result.is_final))
+      #Debug().p('Stability: %f'%(result.stability))
       # The alternatives are ordered from most likely to least.
       alternatives = result.alternatives
       for alternative in alternatives:
         Display().text(alternative.transcript)
-        if result.is_final:
+        t = time.time()
+        d = t - self.lastTime
+        if d > 2.0:
+          self.lastTime = t
           Debug().p('Confidence: %f'%(alternative.confidence))
           Debug().p('Transcript: %s'%(alternative.transcript))
-          args = {"final" : alternative.transcript, "search" : ['search','string']}
+          search = ["",""]
+          sw = alternative.transcript.split()
+          sw.sort(key=len)
+      
+          if len(sw) >= 2:
+            search = sw[-2:]
+          Debug().p("search = %s sw = %s"%(search,sw))  
+          args = {"final" : alternative.transcript, "search" : search }
           self.output.queue.put(args)
 
 

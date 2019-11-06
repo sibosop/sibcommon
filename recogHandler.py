@@ -93,14 +93,14 @@ class RecogHandler(threading.Thread):
         elif msg == "__start__":
           self.doStart()
       else:
-        Debug().p("%s got recog: %s"%(self.name,msg))
+        #Debug().p("%s got recog: %s"%(self.name,msg))
         for ip in self.searchIps:
           cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['search']}}
-          Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
+         # Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
           Hosts().sendToHost(ip,cmd)
         for ip in self.finalIps:
           cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['final']}}
-          Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
+          #Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
           Hosts().sendToHost(ip,cmd)
           
           

@@ -20,6 +20,11 @@ speakerLookup = [
   ,{'search' : "USB-Audio - USB Audio Device", 'name' : "JLAB" }
 ]
 
+micLookup = [
+  {'search' : "iTalk02", 'name' : "iTalk" }
+  ,{'search' : usbMic , 'name' : "usbMic" }
+]
+
 
 def getCardNum(line,key):
   rval=""
@@ -60,9 +65,10 @@ def getHw():
     cardPath = "/proc/asound/cards"
     with open(cardPath) as f:
       for line in f:
-        t = getCardNum(line,usbMic)
-        if t != "":
-          hw['Mic'] = t
+        for m in micLookup:
+          t = getCardNum(line,m['search'])
+          if t != "":
+            hw['Mic'] = t
         for s in speakerLookup:
           t = getCardNum(line,s['search'])
           if t != "":
