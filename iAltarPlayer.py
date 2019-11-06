@@ -28,6 +28,7 @@ from singleton import Singleton
 from debug import Debug
 from server import Server
 import Queue
+from utils import doGetRecog
 
 
 class iAltar(threading.Thread):
@@ -42,6 +43,7 @@ class iAltar(threading.Thread):
     if Hosts().getLocalAttr("hasServer"):
         Server().register({'Search' : self.setSearchType})
     self.queue = Queue.Queue()
+    
     
     
   def setSearchType(self,args):
@@ -129,7 +131,16 @@ class iAltar(threading.Thread):
         for c in choices:
           Debug().p("%s: choice %s"%(self.name,c))
       elif self.searchType == 'Google':
-        choices = Words().getWords()
+        choices = []
+        msg = doGetRecog('')
+        if msg != "":
+          test = json.loads(msg)
+          Debug().p("%s got %s"%(self.name,test))
+          if test['recog'] != ["",""]:
+            choices = test['recog'] 
+            Debug().p["%s choices from recog %s"%(self.name,choices)]
+        if len(choices) == 0:
+          choices = Words().getWords()
         urls = Search().getUrls(choices)
         if urls == None:
           Debug().p("%s Google Error switching to Archive"%self.name)

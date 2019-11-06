@@ -48,7 +48,7 @@ class RecogHandler(threading.Thread):
       for t in self.threads:
         ThreadMgr().stop(t)
         del t
-      self.threads = []
+      self.threads = []  
     Display().text("Recog not Running")
     
   def doStart(self):
@@ -65,11 +65,17 @@ class RecogHandler(threading.Thread):
     Display().text("Recog Running")
       
   def getRecog(self,cmd):
-    Debug().p("starting recog")
+    Debug().p("getting recog")
     recog = {}
     recog['status'] = "ok"
-    recog['recog'] = self.recog
-    return json.dumps(recog)
+    if len(self.threads) != 0:
+      msg['recog'] = self.recog
+    else
+      msg['recog'] = ["",""]
+    rval =  json.dumps(msg)
+    self.recog = ["",""]
+    return rval
+    
     
   def startRecog(self,cmd):
     Debug().p("starting recog")
@@ -95,9 +101,11 @@ class RecogHandler(threading.Thread):
       else:
         #Debug().p("%s got recog: %s"%(self.name,msg))
         for ip in self.searchIps:
-          cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['search']}}
+          self.recog = msg['search']
+          cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : self.recog}}
          # Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
           Hosts().sendToHost(ip,cmd)
+      
         for ip in self.finalIps:
           cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['final']}}
           #Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))

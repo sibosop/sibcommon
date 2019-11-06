@@ -45,11 +45,12 @@ def doHaltVoice(cmd):
   
 def sendRecogMsg(cmdStr):
   cmd = { 'cmd' : cmdStr, 'args' : [""] }
+  rval = ""
   for ip in Hosts().getHostIps():
     recog = Hosts().getAttr(ip,'recog')
     if recog['enabled'] and recog['engine']:
-        Hosts().sendToHost(ip,cmd)
-  return 0
+        rval = Hosts().sendToHost(ip,cmd)
+  return rval
   
 def doPoweroff(cmdStr):
   cmd = { 'cmd' : 'Poweroff', 'args' : [""] }
