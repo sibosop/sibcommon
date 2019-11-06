@@ -67,12 +67,11 @@ class RecogHandler(threading.Thread):
       
   def getRecog(self,cmd):
     Debug().p("getting recog")
-    recog = {}
-    recog['status'] = "ok"
+    msg = {}
+    msg['status'] = "ok"
+    msg['recog'] = ["",""]
     if len(self.threads) != 0:
       msg['recog'] = self.recog
-    else
-      msg['recog'] = ["",""]
     rval =  json.dumps(msg)
     self.recog = ["",""]
     return rval
