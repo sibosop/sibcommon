@@ -102,8 +102,12 @@ class RecogHandler(threading.Thread):
         #Debug().p("%s got recog: %s"%(self.name,msg))
         for ip in self.searchIps:
           cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['search']}}
-          if len(msg['search']) >= 2:
-            # Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
+          c = 0
+          for w in msg['search']:
+            if len(w) != 0:
+              c+=1
+          if c == 2:
+            Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd)) 
             Hosts().sendToHost(ip,cmd)
             self.recog = msg['search']
         for ip in self.finalIps:

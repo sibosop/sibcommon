@@ -6,6 +6,7 @@ import syslog
 import os
 import io
 import grpc
+import traceback
 from debug import Debug
 from recogAnalyzer import RecogAnalyzer
 
@@ -70,25 +71,14 @@ class Recog(threading.Thread):
           for result in response.results:
             self.anal.queue.put(result)
               
-
-      except grpc.RpcError, e:
-        if e.code() not in (grpc.StatusCode.INVALID_ARGUMENT,
-                              grpc.StatusCode.OUT_OF_RANGE):
-          raise
-        details = e.details()
-        if e.code() == grpc.StatusCode.INVALID_ARGUMENT:
-          if 'deadline too short' not in details:
-            raise
-          else:
-            if 'maximum allowed stream duration' not in details:
-                raise
-
-          print(self.name +": "+ details + ' Resuming..')
       except Exception as e:
+        print("%s: exception %s"%(self.name,e))
         if str(e).find("iterating requests") == -1:
+          traceback.print_exc()
+        else:
           print ("%s: %s"%(self.name,e))
-        self.running = False
-
+          self.running = False
+          
 
   
   

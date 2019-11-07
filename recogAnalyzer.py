@@ -41,10 +41,10 @@ class RecogAnalyzer(threading.Thread):
         Display().text(alternative.transcript)
         t = time.time()
         d = t - self.lastTime
-        if d > 2.0:
+        if d > .5:
           self.lastTime = t
-          Debug().p('Confidence: %f'%(alternative.confidence))
-          Debug().p('Transcript: %s'%(alternative.transcript))
+          #Debug().p('Confidence: %f'%(alternative.confidence))
+          #Debug().p('Transcript: %s'%(alternative.transcript))
           search = ["",""]
           sw = alternative.transcript.split()
           sw.sort(key=len)
