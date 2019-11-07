@@ -34,7 +34,8 @@ class ThreadMgr(object):
           print ("%s: thread stopped %s"%(self.name,t.name))
     else:
       print("%s: thread %s already dead"%(self.name,t.name))
-    del self.tlist[t.name]
+    if t.name in self.tlist:
+      del self.tlist[t.name]
       
   def stopByName(self,n):
     try:
@@ -44,5 +45,6 @@ class ThreadMgr(object):
       
   def stopAll(self):
     for k in self.tlist.keys():
-      self.stop(self.tlist[k])
+      if k in self.tlist:
+        self.stop(self.tlist[k])
   
