@@ -14,6 +14,9 @@ from hosts import Hosts
 from debug import Debug
 from specs import Specs
 from utils import internetOn
+import base64
+
+
 
 
 def convertSampleRate(fname):
@@ -72,6 +75,19 @@ def makeSpeakFile(line,language=''):
     rval = None
   return rval
 
+def makeSpeakData(phrase,lang):
+  rval = ""
+  try:
+    file=makeSpeakFile(phrase,lang)
+    if file is None:
+      print("Make Speak File error, skipping")
+    else:
+      with open(file,"rb") as sf:
+        rval = base64.b64encode(sf.read())
+      os.unlink(file)
+  except Exception, e:
+    print("getting voice data error: %s"%e)
+  return rval
 
 if __name__ == '__main__':
   os.environ['DISPLAY']=":0.0"

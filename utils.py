@@ -4,6 +4,9 @@ import os
 from hosts import Hosts
 from debug import Debug
 from asoundConfig import setVolume
+
+
+
   
 def internetOn():
   try:

@@ -15,7 +15,7 @@ import ssl
 import base64
 from httplib import BadStatusLine
 
-import textSpeaker
+from textSpeaker import makeSpeakData
 from archive import Archive
 from imageHandler import ImageHandler
 from specs import Specs
@@ -159,21 +159,14 @@ class iAltar(threading.Thread):
       phraseArgs = {}
       if len(phraseHosts) != 0:
         phraseArgs['phrase'] = choices
+        phraseArgs['phraseData'] = ""
         Debug().p("%s sending %s to %s"%(self.name,choices,ip))
         for ip in phraseHosts:
           phr = Hosts().getAttr(ip,'phrase')
           if phr['voice']:
-            try:
-              lang = random.choice(Specs().s['langList'])
-              file=textSpeaker.makeSpeakFile("%s %s"%(choices[0],choices[1]),lang)
-              if file is None:
-                print("Make Speak File error, skipping")
-              else:
-                with open(file,"rb") as sf:
-                  phraseArgs['phraseData'] = base64.b64encode(sf.read())
-                os.unlink(file)
-            except Exception, e:
-              print("getting voice data error: %s"%s)
+            lang = random.choice(Specs().s['langList'])
+            phraseArgs['phraseData'] = makeSpeakData("%s %s"%(choices[0],choices[1]),lang)
+            
         #os.unlink(file.replace("mp3","wav"));
     
 

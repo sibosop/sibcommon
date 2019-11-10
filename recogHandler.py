@@ -14,6 +14,9 @@ from singleton import Singleton
 import Queue
 from threadMgr import ThreadMgr
 import json
+from specs import Specs
+import random
+from textSpeaker import makeSpeakData
 
 class RecogHandler(threading.Thread):
   __metaclass__ = Singleton
@@ -86,6 +89,19 @@ class RecogHandler(threading.Thread):
     Debug().p("halting recog")
     self.queue.put("__halt__")
     return Hosts.jsonStatus("ok")
+  
+  def sendPhrase(self,ip,text):
+    lang = random.choice(Specs().s['langList'])
+    phr = Hosts().getAttr(ip,'phrase')
+    args = {}
+    args["phrase"] = text
+    if phr['voice']:
+      args["phraseData"] = makeSpeakData("%s %s"%(text[0],text[1]),lang)
+    else:
+      args["phraseData"] = "" 
+    cmd = { 'cmd' : "Phrase", 'args' : args}
+    Debug().p("%s: ip %s sending %s"%(self.name,ip,args['phrase'])) 
+    Hosts().sendToHost(ip,cmd)
     
   def run(self):
     print("%s: starting thread"%self.name)
@@ -101,19 +117,18 @@ class RecogHandler(threading.Thread):
       else:
         #Debug().p("%s got recog: %s"%(self.name,msg))
         for ip in self.searchIps:
-          cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['search']}}
           c = 0
+          text =""
           for w in msg['search']:
             if len(w) != 0:
               c+=1
           if c == 2:
-            Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd)) 
-            Hosts().sendToHost(ip,cmd)
+            self.sendPhrase(ip,msg['search'])
             self.recog = msg['search']
+            
         for ip in self.finalIps:
-          cmd = { 'cmd' : "Phrase", 'args' : {"phrase" : msg['final']}}
           #Debug().p("%s: ip %s sending %s"%(self.name,ip,cmd))
-          Hosts().sendToHost(ip,cmd)
+          self.sendPhrase(ip,msg['final'])
           
           
         
