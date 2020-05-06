@@ -40,8 +40,8 @@ if __name__ == '__main__':
   Debug(["__main__"])
   Specs("%s/%s"%("speclib","commontest.json"))
   choices = Words().getWords()
-  print choices
+  print (choices)
   choices = Words().getWords()
-  print choices
+  print (choices)
   choices = Words().getWords()
-  print choices
+  print (choices)

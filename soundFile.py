@@ -15,8 +15,7 @@ from debug import Debug
 from singleton import Singleton
 from specs import Specs
 
-class SoundFile(object):
-  __metaclass__ = Singleton
+class SoundFile(metaclass=Singleton):
   def __init__(self):
     self.listMutex=threading.Lock()
     self.maxEvents = 2
@@ -28,12 +27,15 @@ class SoundFile(object):
     self.rootDir = ""
     self.index = 0
     for k in Specs().s['collections']:
+      print("k=%s"%k)
       self.collections[k] = []
       for d in Specs().s[k]:
         self.collections[k].append(d)
         Debug().p("key: %s collection %s"%(k,d))
   
-  def setCurrentCollection(self,k):
+  def setCurrentCollection(self,k=None):
+    if k == None:
+      k = Specs().s['collections'][0]
     self.currentCollection = k
     self.baseTime = time.time()
     self.timeout = 0

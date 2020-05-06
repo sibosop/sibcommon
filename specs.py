@@ -4,7 +4,7 @@ import json
 from debug import Debug
 from singleton import Singleton
 
-class Specs(object):
+class Specs(metaclass=Singleton):
   __metaclass__ = Singleton
 
   def __init__(self,specPath):
