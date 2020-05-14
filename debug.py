@@ -3,7 +3,7 @@ import inspect
 from singleton import Singleton
 
 
-class Debug(object):
+class Debug(metaclass=Singleton):
   __metaclass__ = Singleton
   def __init__(self,modlist=[]):
     self.tlist = {}
