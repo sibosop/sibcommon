@@ -17,6 +17,7 @@ from specs import Specs
 
 class SoundFile(metaclass=Singleton):
   def __init__(self):
+    self.name="SoundFile"
     self.listMutex=threading.Lock()
     self.maxEvents = 2
     self.collections = {}
@@ -68,12 +69,16 @@ class SoundFile(metaclass=Singleton):
     numChoices = Specs().s['maxEvents']
     Debug().p("collection: %s number of choices: %d max Events: %d"%(cur['name'],self.maxEvents,numChoices))
     rval = []
-    while len(rval) < numChoices:
-      choice = random.randint(0,len(keys)-1)
-      Debug().p("rval %s"%rval)
-      if keys[choice]['name'] in rval:
-        continue
-      rval.append(keys[choice])
+    if len(keys) < numChoices:
+      for k in keys:
+        rval.append(k)
+    else:
+      while len(rval) < numChoices:
+        choice = random.randint(0,len(keys)-1)
+        if keys[choice] in rval:
+          continue
+        rval.append(keys[choice])
+    Debug().p("%s: rval %s"%(self.name,rval))
     return rval
   
 
