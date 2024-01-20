@@ -55,10 +55,28 @@ class SoundFile(metaclass=Singleton):
         Debug().p("testBumpCollection for %s %s done"%(self.currentCollection,last))
         return False
       cur = self.collections[self.currentCollection][self.index]
-      Debug().p("new current collection %s"%cur['name'])
+      Debug().p("---------------------------------------------")
+      Debug().p("NEW CURRENT COLLECTION %s"%cur['name'])
+      Debug().p("---------------------------------------------")
       self.timeout = time.time() + cur['time']
       Debug().p("new timeout %d"%self.timeout)
     return True
+    
+  def goto(self,label):
+    newIndex = 0;
+    for k in self.collections[self.currentCollection]:
+      print(k['name'])
+      if (k['name'] == label):
+        print("going to label", label, "newIndex", newIndex)
+        self.baseTime = time.time()
+        self.timeout = 0
+        self.rootDir = ""
+        self.index = newIndex;
+        self.timeout = self.collections[self.currentCollection][self.index]['time'] + time.time()
+        return True
+      newIndex += 1
+      
+    return False
   
   def getSoundEntry(self):
     cur = self.collections[self.currentCollection][self.index]
